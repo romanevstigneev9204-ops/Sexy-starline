@@ -11,6 +11,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/layout.dart';
 import '../../../domain/entities/command.dart';
+import '../../../domain/widgets/home_widget_payload.dart';
 import '../../widgets/confirm_sheets.dart';
 import '../../widgets/metric_chip.dart';
 import '../../widgets/rate_limit_view.dart';
@@ -38,7 +39,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       await ref.read(homeControllerProvider.notifier).bootstrap();
       ref.read(homeControllerProvider.notifier).setForeground(true);
       ref.invalidate(budgetProvider);
+      syncHomeWidget(ref.read);
+      await _consumePendingWidgetAction();
     });
+  }
+
+  Future<void> _consumePendingWidgetAction() async {
+    final pending = ref.read(pendingHomeWidgetActionProvider);
+    if (pending == null || pending == HomeWidgetAction.open) {
+      if (pending == HomeWidgetAction.open) {
+        ref.read(pendingHomeWidgetActionProvider.notifier).state = null;
+      }
+      return;
+    }
+    ref.read(pendingHomeWidgetActionProvider.notifier).state = null;
+    final cmd = switch (pending) {
+      HomeWidgetAction.arm => DeviceCommand.arm,
+      HomeWidgetAction.disarm => DeviceCommand.disarm,
+      HomeWidgetAction.open => null,
+    };
+    if (cmd == null || !mounted) return;
+    await _onCommand(cmd);
   }
 
   @override
@@ -128,6 +149,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       );
       ref.read(geofencesControllerProvider.notifier).clearLastAlert();
+    });
+
+    ref.listen<HomeWidgetAction?>(pendingHomeWidgetActionProvider,
+        (prev, next) {
+      if (next == null || next == HomeWidgetAction.open) return;
+      if (!home.hasData || home.loading) return;
+      Future.microtask(_consumePendingWidgetAction);
     });
 
     if (home.rateLimited) {

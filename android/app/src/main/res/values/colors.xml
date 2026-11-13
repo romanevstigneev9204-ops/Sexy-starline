@@ -2,6 +2,13 @@
 <resources>
     <!-- Night Drive tokens (match lib/core/theme/colors.dart) -->
     <color name="night_drive_graphite">#FF0B0E12</color>
+    <color name="night_drive_graphite_elevated">#FF12161D</color>
+    <color name="night_drive_graphite_card">#FF1A1F28</color>
     <color name="night_drive_cyan">#FF3DDBD9</color>
+    <color name="night_drive_amber">#FFF0A04B</color>
+    <color name="night_drive_danger">#FFE07060</color>
+    <color name="night_drive_text_primary">#FFFFFFFF</color>
+    <color name="night_drive_text_secondary">#FF9AA3B2</color>
+    <color name="night_drive_stroke">#FF2A3140</color>
     <color name="ic_launcher_background">#FF0B0E12</color>
 </resources>
