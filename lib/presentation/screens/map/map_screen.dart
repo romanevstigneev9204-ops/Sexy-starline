@@ -66,7 +66,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       urlTemplate:
                           'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
                       subdomains: const ['a', 'b', 'c', 'd'],
-                      userAgentPackageName: 'ru.sexystarline.sexy_starline',
+                      userAgentPackageName: 'ru.sexystarline.app',
                     ),
                     MarkerLayer(
                       markers: [

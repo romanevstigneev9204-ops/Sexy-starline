@@ -1,4 +1,4 @@
-package ru.sexystarline.sexy_starline
+package ru.sexystarline.app
 
 import io.flutter.embedding.android.FlutterActivity
 

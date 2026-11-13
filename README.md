@@ -125,7 +125,82 @@ flutter test
 flutter analyze
 ```
 
+## Идентификаторы / Store prep
+
+Канонические defaults (ещё **не** зарегистрированы в Play / App Store — placeholders до вашей публикации):
+
+| Платформа | Поле | Значение |
+|-----------|------|----------|
+| Общее | Display name | `Sexy Starline` |
+| Общее | Версия | `pubspec.yaml` → `0.1.0+1` (`versionName`/`CFBundleShortVersionString` = `0.1.0`, `versionCode`/`CFBundleVersion` = `1`) |
+| Android | `applicationId` / `namespace` | `ru.sexystarline.app` |
+| iOS | `PRODUCT_BUNDLE_IDENTIFIER` | `ru.sexystarline.app` |
+| iOS tests | Bundle id | `ru.sexystarline.app.RunnerTests` |
+
+Иконки: Night Drive placeholders (графит + cyan diamond BrandMark) — Android adaptive (`mipmap-anydpi-v26`) + legacy mipmaps; iOS `AppIcon.appiconset`. Мастера: [`assets/branding/`](./assets/branding/). Splash: графит `#0B0E12` + mark (Android `launch_background`, iOS `LaunchScreen`).
+
+**Не** публикуем в Play / App Store из этого репо без явного согласия владельца. Credentials Apple/Google **не** хранятся и **не** выдумываются.
+
+### Локальная сборка APK (Android)
+
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+
+# Debug / unsigned-style local release (debug keystore, если нет key.properties)
+flutter build apk --release
+
+# С реальных StarLine credentials (опционально):
+flutter build apk --release \
+  --dart-define=STARLINE_APP_ID=your_app_id \
+  --dart-define=STARLINE_APP_SECRET=your_app_secret
+```
+
+Артефакт: `build/app/outputs/flutter-apk/app-release.apk`.
+
+App Bundle для Play (когда будете готовы сами):
+
+```bash
+flutter build appbundle --release
+```
+
+Подпись release (вы должны поставить сами):
+
+1. Создайте upload keystore (`keytool -genkey …`) — файл `.jks` / `.keystore` **не** коммитить.
+2. `cp android/key.properties.example android/key.properties` и заполните пути/пароли.
+3. `android/key.properties`, `*.jks`, `*.keystore` уже в `.gitignore`.
+
+Без `key.properties` release подписывается **debug**-ключом (удобно для локальной проверки; для Play нужен ваш upload key).
+
+### Локальная сборка IPA (iOS)
+
+Нужны **macOS + Xcode** и ваш Apple Developer аккаунт (мы его не создаём и не подставляем):
+
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter build ipa --release \
+  --dart-define=STARLINE_APP_ID=your_app_id \
+  --dart-define=STARLINE_APP_SECRET=your_app_secret
+```
+
+Либо откройте `ios/Runner.xcworkspace` в Xcode → Signing & Capabilities → выберите Team / provisioning.
+
+Артефакт: `build/ios/ipa/*.ipa` (или Archive в Organizer).
+
+### Что пользователь должен поставить позже (секреты / сертификаты)
+
+| Секрет | Где | Примечание |
+|--------|-----|------------|
+| `STARLINE_APP_ID` / `STARLINE_APP_SECRET` | `--dart-define` или CI secrets | Уже выданы StarLine; **не** в git |
+| Android upload keystore + `android/key.properties` | Локально / CI | Для Play upload; см. `key.properties.example` |
+| Play Console аккаунт / service account | У владельца | Только при явной публикации |
+| Apple Developer Team ID, distribution cert, provisioning profile | Keychain / Xcode / CI | Bundle id `ru.sexystarline.app` должен быть зарегистрирован у вас |
+| App Store Connect API key (опционально для CI) | CI secrets | Не коммитить |
+| Push (FCM / APNs) | После MVP | Не в этом prep |
+
 ## Лицензия / политика API
 
 Owner-only, некоммерческий StarLine Open API (~1000 req/сутки).  
-Публикация «для всех владельцев» может потребовать отдельный договор со StarLine.
+Публикация «для всех владельцев» может потребовать отдельный договор со StarLine.  
+Публикация в App Store / Google Play — **только** после явного согласия владельца.
