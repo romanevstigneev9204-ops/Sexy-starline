@@ -87,6 +87,17 @@ class GeofencesTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+QueryExecutor _openExecutor() {
+  return driftDatabase(
+    name: 'sexy_starline',
+    // Required when compiling to web — ignored on native/mobile.
+    web: DriftWebOptions(
+      sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+      driftWorker: Uri.parse('drift_worker.js'),
+    ),
+  );
+}
+
 @DriftDatabase(
   tables: [
     DevicesTable,
@@ -98,8 +109,7 @@ class GeofencesTable extends Table {
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: 'sexy_starline'));
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? _openExecutor());
 
   @override
   int get schemaVersion => 2;

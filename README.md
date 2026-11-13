@@ -10,6 +10,7 @@ Flutter MVP для владельца StarLine: статус охраны, ко�
 
 - Flutter 3.35+ / Dart 3.9+
 - iOS 13+ / Android 7+ (API 24+)
+- Опционально: Linux desktop, Chrome/web (см. ниже)
 
 ## Быстрый старт (демо)
 
@@ -45,8 +46,39 @@ flutter run \
 | `STARLINE_DEMO=true` | Принудительный mock | `false` |
 | `STARLINE_SLID_BASE` | SLID host | `https://id.starline.ru` |
 | `STARLINE_API_BASE` | WebAPI host | `https://developer.starline.ru` |
+| `MAP_TILE_URL` | Шаблон тайлов карты | OSM `tile.openstreetmap.org` (без ключа) |
+| `MAP_TILE_KEY` | Подстановка `{api_key}` в URL | пусто |
+| `MAP_TILE_NIGHT_FILTER` | ColorFilter Night Drive поверх тайлов | `true` для OSM default |
 
 См. также [`.env.example`](./.env.example) — шаблон для локальных env (не для коммита значений).
+
+### Карта / тайлы
+
+По умолчанию — **бесплатные OSM-тайлы без API key** + Night Drive color filter (тёмный вид без платного Carto/MapTiler).  
+Carto Dark Matter без ключа показывает watermark «API KEY REQUIRED» — не используем как default.
+
+Свой провайдер (в т.ч. Carto dark с ключом):
+
+```bash
+flutter run \
+  --dart-define=MAP_TILE_URL='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?apikey={api_key}' \
+  --dart-define=MAP_TILE_KEY=your_carto_key \
+  --dart-define=MAP_TILE_NIGHT_FILTER=false
+```
+
+### Web / Linux
+
+В репозитории есть `web/` и `linux/`. Android `applicationId` / iOS bundle id **не** менялись (`ru.sexystarline.app`).
+
+**Web + Drift:** в `web/` лежат `sqlite3.wasm` и `drift_worker.js` (нужны Drift WASM). Без них Chrome падает с ошибкой про параметр `web`.
+
+```bash
+flutter run -d chrome
+# или
+flutter run -d linux
+```
+
+Linux: нужны GTK / libsecret (keyring) для `flutter_secure_storage`. Web — демо/отладка; mobile — основной target.
 
 ## Архитектура
 

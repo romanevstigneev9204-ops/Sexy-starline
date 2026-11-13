@@ -151,7 +151,16 @@ abstract final class S {
   // Settings
   static const settingsTitle = 'Настройки';
   static const theme = 'Тема';
-  static const themeValue = 'Системная (Night Drive / Day Metal)';
+  static const themeValue = 'Night Drive';
+  static const themeSheetTitle = 'Тема оформления';
+  static const themeNightDrive = 'Night Drive';
+  static const themeNightDriveHint = 'Графит · cyan · amber (текущая)';
+  static const themeSystem = 'Системная';
+  static const themeSystemHint =
+      'Следует системной схеме; пока всегда Night Drive';
+  static const themeDayMetal = 'Day Metal';
+  static const themeDayMetalHint = 'Скоро — светлая тема';
+  static const themeClose = 'Готово';
   static const apiLimit = 'Лимит API';
   static const simBalance = 'Баланс SIM';
   static const simBalanceEmpty = 'Нет данных от StarLine';
