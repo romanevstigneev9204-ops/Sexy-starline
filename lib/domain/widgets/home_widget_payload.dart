@@ -18,10 +18,13 @@ enum HomeWidgetAction { open, arm, disarm }
 /// Canonical Android AppWidgetProvider class simple name (must match Kotlin).
 const kAndroidArmStatusWidgetName = 'ArmStatusWidgetProvider';
 
-/// Future iOS WidgetKit kind — not wired yet (see README).
+/// iOS WidgetKit kind — must match `ArmStatusWidget` in ios/ArmStatusWidget.
 const kIosArmStatusWidgetName = 'ArmStatusWidget';
 
-/// Custom scheme used by [HomeWidgetLaunchIntent] deep links.
+/// App Group shared by Runner + WidgetKit extension (home_widget UserDefaults).
+const kIosAppGroupId = 'group.ru.sexystarline.app';
+
+/// Custom scheme used by [HomeWidgetLaunchIntent] / WidgetKit deep links.
 const kHomeWidgetScheme = 'sexystarline';
 
 class HomeWidgetSnapshot {
@@ -121,13 +124,20 @@ class HomeWidgetSnapshot {
 }
 
 abstract final class HomeWidgetDeepLink {
-  static Uri uriFor(HomeWidgetAction action) {
+  /// Builds a widget deep-link. On iOS, [forIos] adds the `homeWidget` query
+  /// param required by the home_widget plugin to detect widget launches.
+  static Uri uriFor(HomeWidgetAction action, {bool forIos = false}) {
     final path = switch (action) {
       HomeWidgetAction.open => 'open',
       HomeWidgetAction.arm => 'arm',
       HomeWidgetAction.disarm => 'disarm',
     };
-    return Uri(scheme: kHomeWidgetScheme, host: 'widget', path: '/$path');
+    return Uri(
+      scheme: kHomeWidgetScheme,
+      host: 'widget',
+      path: '/$path',
+      queryParameters: forIos ? const {'homeWidget': ''} : null,
+    );
   }
 
   static HomeWidgetAction? parse(Uri? uri) {

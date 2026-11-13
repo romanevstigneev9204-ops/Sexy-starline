@@ -19,8 +19,10 @@ class HomeWidgetBridge {
       String? iOSName,
       String? qualifiedAndroidName,
     })? update,
+    Future<bool?> Function(String groupId)? setAppGroupId,
   })  : _save = save ?? HomeWidget.saveWidgetData,
         _update = update ?? HomeWidget.updateWidget,
+        _setAppGroupId = setAppGroupId ?? HomeWidget.setAppGroupId,
         _enabledOverride = enabled;
 
   final bool? _enabledOverride;
@@ -31,6 +33,8 @@ class HomeWidgetBridge {
     String? iOSName,
     String? qualifiedAndroidName,
   }) _update;
+  final Future<bool?> Function(String groupId) _setAppGroupId;
+  bool _appGroupReady = false;
 
   bool get isSupported {
     final override = _enabledOverride;
@@ -38,6 +42,18 @@ class HomeWidgetBridge {
     if (kIsWeb) return false;
     return defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
+  Future<void> ensureConfigured() async {
+    if (!isSupported || _appGroupReady) return;
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      try {
+        await _setAppGroupId(kIosAppGroupId);
+      } catch (_) {
+        // Best-effort; sync will no-op if App Group is missing.
+      }
+    }
+    _appGroupReady = true;
   }
 
   Future<void> syncFromHome({
@@ -63,6 +79,7 @@ class HomeWidgetBridge {
   Future<void> syncSnapshot(HomeWidgetSnapshot snapshot) async {
     if (!isSupported) return;
     try {
+      await ensureConfigured();
       final map = snapshot.toStorageMap();
       for (final entry in map.entries) {
         final value = entry.value;

@@ -96,7 +96,8 @@ lib/
     repositories/ # кэш + budget + rate-limit
     mock/         # демо-каталог
   core/           # theme Night Drive, router, Env, RU/EN strings (+ lib/l10n/*.arb)
-android/…/ArmStatusWidgetProvider.kt  # Night Drive home-screen widget
+android/…/ArmStatusWidgetProvider.kt  # Night Drive Android home widget
+ios/ArmStatusWidget/                   # WidgetKit extension (Night Drive)
 ```
 
 ### Auth / API
@@ -133,22 +134,21 @@ Open API лимит: **~1000 req/user/day**. Клиент честно учит�
 
 Реализация: `PollPolicy` + `HomeController` timer / lifecycle; `AppDatabase.incrementRequestCount` на каждый WebAPI/SLID вызов.
 
-### Home-screen widgets (Android)
+### Home-screen widgets (Android + iOS)
 
-Виджет **Sexy Starline** на рабочем столе Android (Night Drive): статус охраны + CTA «Поставить / Снять / Открыть».
+Виджет **Sexy Starline** на рабочем столе (Night Drive): статус охраны + CTA «Поставить / Снять / Открыть».
 
 | Что | Как |
 |-----|-----|
 | Данные | Flutter пушит снимок через [`home_widget`](https://pub.dev/packages/home_widget) после Home refresh / команды |
-| Polling | `updatePeriodMillis=0` — виджет **не** ходит в StarLine сам |
+| Polling | **Нет** отдельного poll StarLine: Android `updatePeriodMillis=0`, iOS Timeline `.never` |
 | Действия | Deep-link `sexystarline://widget/{open\|arm\|disarm}` → открытие приложения; disarm с confirm-sheet |
-| Нативные файлы | `ArmStatusWidgetProvider.kt`, `res/layout/arm_status_widget.xml` |
+| Android | `ArmStatusWidgetProvider.kt`, `res/layout/arm_status_widget.xml` |
+| iOS | WidgetKit `ArmStatusWidget` + App Group `group.ru.sexystarline.app`; `HomeWidget.setAppGroupId` |
 
-Добавление: долгое нажатие на рабочий стол → виджеты → Sexy Starline.
+**Android:** долгое нажатие на рабочий стол → виджеты → Sexy Starline.
 
-#### iOS follow-up (не в этом PR)
-
-WidgetKit требует App Group + Widget Extension target в Xcode (macOS). Заготовка kind: `ArmStatusWidget` (`kIosArmStatusWidgetName`). Дальше: App Group `group.ru.sexystarline.app`, extension target, `HomeWidget.setAppGroupId`, SwiftUI timeline из UserDefaults — без отдельного poll StarLine.
+**iOS:** нужен macOS + Xcode и Apple Developer Team (App Groups). В Signing & Capabilities у **Runner** и **ArmStatusWidgetExtension** должен быть App Group `group.ru.sexystarline.app` (entitlements уже в репо). Добавление: долгий тап на Home Screen → виджеты → Sexy Starline (small / medium; medium — быстрые «Поставить / Снять»).
 
 ### Навигация
 
@@ -193,6 +193,8 @@ flutter analyze
 | Общее | Версия | `pubspec.yaml` → `0.1.0+1` (`versionName`/`CFBundleShortVersionString` = `0.1.0`, `versionCode`/`CFBundleVersion` = `1`) |
 | Android | `applicationId` / `namespace` | `ru.sexystarline.app` |
 | iOS | `PRODUCT_BUNDLE_IDENTIFIER` | `ru.sexystarline.app` |
+| iOS widget | Bundle id | `ru.sexystarline.app.ArmStatusWidget` |
+| iOS App Group | Shared defaults | `group.ru.sexystarline.app` |
 | iOS tests | Bundle id | `ru.sexystarline.app.RunnerTests` |
 
 Иконки: Night Drive placeholders (графит + cyan diamond BrandMark) — Android adaptive (`mipmap-anydpi-v26`) + legacy mipmaps; iOS `AppIcon.appiconset`. Мастера: [`assets/branding/`](./assets/branding/). Splash: графит `#0B0E12` + mark (Android `launch_background`, iOS `LaunchScreen`).
