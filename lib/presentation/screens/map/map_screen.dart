@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../application/providers.dart';
 import '../../../application/tracks/tracks_controller.dart';
+import '../../../core/config/map_tiles.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/layout.dart';
@@ -186,13 +187,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     backgroundColor: NightDriveColors.graphite,
                   ),
                   children: [
-                    TileLayer(
-                      // Dark Night Drive base (CartoDB Dark Matter).
-                      urlTemplate:
-                          'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                      subdomains: const ['a', 'b', 'c', 'd'],
-                      userAgentPackageName: 'ru.sexystarline.app',
-                    ),
+                    _NightDriveTileLayer(),
                     if (circles.isNotEmpty) CircleLayer(circles: circles),
                     if (polylines.isNotEmpty) PolylineLayer(polylines: polylines),
                     MarkerLayer(
@@ -368,6 +363,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Free OSM (or dart-define override) with optional Night Drive color filter.
+class _NightDriveTileLayer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final layer = TileLayer(
+      urlTemplate: MapTilesConfig.urlTemplate,
+      subdomains: MapTilesConfig.subdomains,
+      userAgentPackageName: 'ru.sexystarline.app',
+    );
+    if (!MapTilesConfig.applyNightFilter) return layer;
+    return ColorFiltered(
+      colorFilter: MapTilesConfig.nightDriveFilter,
+      child: layer,
     );
   }
 }

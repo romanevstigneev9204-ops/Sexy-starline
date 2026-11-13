@@ -32,4 +32,15 @@ class Env {
     'STARLINE_API_BASE',
     defaultValue: 'https://developer.starline.ru',
   );
+
+  /// Optional map tile template / key — see `MapTilesConfig`.
+  static const String mapTileUrl = String.fromEnvironment(
+    'MAP_TILE_URL',
+    defaultValue: '',
+  );
+
+  static const String mapTileKey = String.fromEnvironment(
+    'MAP_TILE_KEY',
+    defaultValue: '',
+  );
 }

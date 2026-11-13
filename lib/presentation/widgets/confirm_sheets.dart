@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../application/theme/theme_preference.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/layout.dart';
@@ -339,6 +340,177 @@ class _HoldToStartSheetState extends State<_HoldToStartSheet>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Theme picker sheet — Night Drive + System (Day Metal listed as coming soon).
+Future<AppThemeChoice?> showThemeSheet(
+  BuildContext context, {
+  required AppThemeChoice current,
+}) {
+  return showModalBottomSheet<AppThemeChoice>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: NightDriveColors.graphiteElevated,
+    barrierColor: NightDriveColors.scrim,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(NdLayout.radiusSheet),
+      ),
+    ),
+    builder: (ctx) {
+      return _ThemeSheetBody(current: current);
+    },
+  );
+}
+
+class _ThemeSheetBody extends StatefulWidget {
+  const _ThemeSheetBody({required this.current});
+
+  final AppThemeChoice current;
+
+  @override
+  State<_ThemeSheetBody> createState() => _ThemeSheetBodyState();
+}
+
+class _ThemeSheetBodyState extends State<_ThemeSheetBody> {
+  late AppThemeChoice _selected = widget.current;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        NdLayout.pagePad,
+        12,
+        NdLayout.pagePad,
+        20 + MediaQuery.paddingOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _sheetHandle(),
+          const SizedBox(height: 22),
+          Text(
+            S.themeSheetTitle,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.archivoNarrow(
+              color: NightDriveColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 22,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 16),
+          for (final choice in AppThemeChoice.values) ...[
+            _ThemeOptionTile(
+              choice: choice,
+              selected: _selected == choice,
+              onTap: () => setState(() => _selected = choice),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Opacity(
+            opacity: 0.45,
+            child: _ThemeOptionTile(
+              title: S.themeDayMetal,
+              subtitle: S.themeDayMetalHint,
+              selected: false,
+              enabled: false,
+              onTap: null,
+            ),
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, _selected),
+            child: const Text(S.themeClose),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThemeOptionTile extends StatelessWidget {
+  const _ThemeOptionTile({
+    this.choice,
+    this.title,
+    this.subtitle,
+    required this.selected,
+    this.enabled = true,
+    required this.onTap,
+  }) : assert(choice != null || (title != null && subtitle != null));
+
+  final AppThemeChoice? choice;
+  final String? title;
+  final String? subtitle;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = title ?? choice!.titleRu;
+    final hint = subtitle ?? choice!.subtitleRu;
+    return Material(
+      color: selected
+          ? NightDriveColors.graphiteCard
+          : NightDriveColors.graphite,
+      borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+            border: Border.all(
+              color: selected
+                  ? NightDriveColors.cyan.withValues(alpha: 0.7)
+                  : NightDriveColors.stroke,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+                color: selected
+                    ? NightDriveColors.cyan
+                    : NightDriveColors.textMuted,
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: GoogleFonts.archivoNarrow(
+                        color: NightDriveColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hint,
+                      style: GoogleFonts.barlow(
+                        color: NightDriveColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

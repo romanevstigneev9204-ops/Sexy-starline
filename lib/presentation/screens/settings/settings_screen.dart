@@ -6,9 +6,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../application/home/home_controller.dart';
 import '../../../application/obd/obd_controller.dart';
 import '../../../application/providers.dart';
+import '../../../application/theme/theme_preference.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/layout.dart';
+import '../../widgets/confirm_sheets.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -50,6 +52,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final budget = ref.watch(budgetProvider);
     final obd = ref.watch(obdControllerProvider);
     final demo = ref.watch(envDemoProvider);
+    final themeChoice = ref.watch(themePreferenceProvider);
     final device = home.device;
     final deviceId = device?.id;
     final supportsObd = device?.supportsObd ?? false;
@@ -79,7 +82,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             const SizedBox(height: NdLayout.gapXl),
-            const _SettingsTile(title: S.theme, subtitle: S.themeValue),
+            _SettingsTile(
+              title: S.theme,
+              subtitle: themeChoice.settingsLabelRu,
+              onTap: () async {
+                final picked = await showThemeSheet(
+                  context,
+                  current: themeChoice,
+                );
+                if (picked != null && context.mounted) {
+                  ref.read(themePreferenceProvider.notifier).state = picked;
+                }
+              },
+            ),
             const SizedBox(height: 10),
             budget.when(
               data: (b) => _SettingsTile(
