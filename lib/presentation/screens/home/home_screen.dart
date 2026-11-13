@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../application/home/home_controller.dart';
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
@@ -68,13 +69,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return '${S.updatedAgo} $mins мин назад';
   }
 
+  bool _hasSecondary(HomeController ctrl) {
+    return ctrl.canSend(DeviceCommand.quietArm) ||
+        ctrl.canSend(DeviceCommand.quietDisarm) ||
+        ctrl.canSend(DeviceCommand.panic) ||
+        ctrl.canSend(DeviceCommand.valetOn) ||
+        ctrl.canSend(DeviceCommand.valetOff);
+  }
+
   Future<void> _onCommand(DeviceCommand cmd) async {
     final home = ref.read(homeControllerProvider.notifier);
-    if (cmd == DeviceCommand.disarm) {
+    if (cmd == DeviceCommand.disarm || cmd == DeviceCommand.quietDisarm) {
       final ok = await showDisarmConfirm(context);
       if (!ok) return;
     } else if (cmd == DeviceCommand.start) {
       final ok = await showStartHoldConfirm(context);
+      if (!ok) return;
+    } else if (cmd == DeviceCommand.panic) {
+      final ok = await showPanicConfirm(context);
+      if (!ok) return;
+    } else if (cmd == DeviceCommand.valetOn) {
+      final ok = await showValetConfirm(context);
       if (!ok) return;
     }
     final success = await home.sendCommand(cmd);
@@ -323,6 +338,104 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       : () => _onCommand(DeviceCommand.horn),
                   child: const Text(S.horn),
                 ),
+                if (_hasSecondary(ctrl)) ...[
+                  const SizedBox(height: NdLayout.gapLg),
+                  Text(
+                    S.moreCommands,
+                    style: GoogleFonts.archivoNarrow(
+                      color: NightDriveColors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                  if (state?.valet == true) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      S.valetActive,
+                      style: GoogleFonts.barlow(
+                        color: NightDriveColors.amber,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  if (ctrl.canSend(DeviceCommand.quietArm) ||
+                      ctrl.canSend(DeviceCommand.quietDisarm))
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: home.commandBusy ||
+                                    !ctrl.canSend(
+                                      (state?.armed ?? false)
+                                          ? DeviceCommand.quietDisarm
+                                          : DeviceCommand.quietArm,
+                                    )
+                                ? null
+                                : () => _onCommand(
+                                      (state?.armed ?? false)
+                                          ? DeviceCommand.quietDisarm
+                                          : DeviceCommand.quietArm,
+                                    ),
+                            child: Text(
+                              (state?.armed ?? false)
+                                  ? S.quietDisarm
+                                  : S.quietArm,
+                            ),
+                          ),
+                        ),
+                        if (ctrl.canSend(DeviceCommand.panic)) ...[
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: NightDriveColors.danger,
+                                side: BorderSide(
+                                  color: NightDriveColors.danger
+                                      .withValues(alpha: 0.7),
+                                ),
+                              ),
+                              onPressed: home.commandBusy
+                                  ? null
+                                  : () => _onCommand(DeviceCommand.panic),
+                              child: const Text(S.panic),
+                            ),
+                          ),
+                        ],
+                      ],
+                    )
+                  else if (ctrl.canSend(DeviceCommand.panic))
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: NightDriveColors.danger,
+                        side: BorderSide(
+                          color:
+                              NightDriveColors.danger.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      onPressed: home.commandBusy
+                          ? null
+                          : () => _onCommand(DeviceCommand.panic),
+                      child: const Text(S.panic),
+                    ),
+                  if (ctrl.canSend(DeviceCommand.valetOn) ||
+                      ctrl.canSend(DeviceCommand.valetOff)) ...[
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      onPressed: home.commandBusy
+                          ? null
+                          : () => _onCommand(
+                                (state?.valet ?? false)
+                                    ? DeviceCommand.valetOff
+                                    : DeviceCommand.valetOn,
+                              ),
+                      child: Text(
+                        (state?.valet ?? false) ? S.valetOff : S.valetOn,
+                      ),
+                    ),
+                  ],
+                ],
               ],
               const SizedBox(height: NdLayout.gapXl),
               budget.when(

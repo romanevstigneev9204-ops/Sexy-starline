@@ -45,6 +45,13 @@ abstract final class S {
   static const start = 'Запуск';
   static const stop = 'Стоп';
   static const horn = 'Сигнал';
+  static const moreCommands = 'Дополнительно';
+  static const quietArm = 'Тихая охрана';
+  static const quietDisarm = 'Тихо снять';
+  static const panic = 'Паника';
+  static const valetOn = 'Сервисный режим';
+  static const valetOff = 'Выйти из сервиса';
+  static const valetActive = 'Сервисный режим включён';
   static const apiBudget = 'Бюджет API';
   static const updatedAgo = 'Обновлено';
   static const noLink = 'Нет связи с авто';
@@ -62,6 +69,14 @@ abstract final class S {
   static const startBody =
       'Команда уйдёт в StarLine. Убедитесь, что авто в безопасном месте.';
   static const startHold = 'Удерживайте, чтобы запустить';
+  static const panicTitle = 'Включить панику?';
+  static const panicBody =
+      'Сирена и световые сигналы. Используйте только при реальной угрозе.';
+  static const panicConfirm = 'Да, паника';
+  static const valetTitle = 'Включить сервисный режим?';
+  static const valetBody =
+      'Охрана и автозапуск будут ограничены. Нужно для сервиса или мойки.';
+  static const valetConfirm = 'Включить сервис';
   static const cancel = 'Отмена';
 
   // Map
@@ -80,6 +95,9 @@ abstract final class S {
   static const theme = 'Тема';
   static const themeValue = 'Системная (Night Drive / Day Metal)';
   static const apiLimit = 'Лимит API';
+  static const simBalance = 'Баланс SIM';
+  static const simBalanceEmpty = 'Нет данных от StarLine';
+  static const simBalanceDemoHint = 'Демо-данные';
   static const devices = 'Устройства';
   static const about = 'О приложении';
   static const aboutValue = 'Sexy Starline MVP · owner-only';

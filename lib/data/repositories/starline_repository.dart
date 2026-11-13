@@ -8,6 +8,7 @@ import '../../domain/entities/device.dart';
 import '../../domain/entities/device_state.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/session.dart';
+import '../../domain/entities/sim_balance.dart';
 import '../local/app_database.dart';
 import '../local/secure_session_store.dart';
 import '../remote/starline_api_client.dart';
@@ -128,7 +129,16 @@ class StarlineRepository {
       return _cachedState!;
     }
     try {
-      final state = await _api.fetchDeviceState(deviceId);
+      var state = await _api.fetchDeviceState(deviceId);
+      // Balance often lives on user_info device rows; merge if data omit it.
+      if (state.simBalance == null) {
+        for (final d in _cachedDevices) {
+          if (d.id == deviceId && d.simBalance != null) {
+            state = state.copyWith(simBalance: d.simBalance);
+            break;
+          }
+        }
+      }
       _cachedState = state;
       await _persistState(state);
       rateLimited = false;
@@ -211,11 +221,19 @@ class StarlineRepository {
             payloadJson: jsonEncode({
               'typeName': d.typeName,
               'imei': d.imei,
+              'phone': d.phone,
               'online': d.online,
               'gsmLevel': d.gsmLevel,
               'functions': d.functions,
               'controls': d.controls,
               'isShared': d.isShared,
+              if (d.simBalance != null)
+                'simBalance': {
+                  'value': d.simBalance!.value,
+                  'currency': d.simBalance!.currency,
+                  'operatorName': d.simBalance!.operatorName,
+                  'updatedAt': d.simBalance!.updatedAt?.toIso8601String(),
+                },
             }),
             isPrimary: Value(d.isPrimary),
             isShared: Value(d.isShared),
@@ -234,14 +252,29 @@ class StarlineRepository {
         alias: row.alias,
         typeName: payload['typeName']?.toString(),
         imei: payload['imei']?.toString(),
+        phone: payload['phone']?.toString(),
         online: payload['online'] == true,
         gsmLevel: StarlineMappers.asInt(payload['gsmLevel']),
         functions: StarlineMappers.stringList(payload['functions']),
         controls: StarlineMappers.stringList(payload['controls']),
+        simBalance: _simBalanceFromPayload(payload['simBalance']),
         isPrimary: row.isPrimary,
         isShared: row.isShared,
       );
     }).toList();
+  }
+
+  SimBalance? _simBalanceFromPayload(dynamic raw) {
+    if (raw is! Map) return null;
+    final map = Map<String, dynamic>.from(raw);
+    final updatedRaw = map['updatedAt']?.toString();
+    return SimBalance(
+      value: StarlineMappers.asDouble(map['value']),
+      currency: '${map['currency'] ?? '₽'}',
+      operatorName: map['operatorName']?.toString(),
+      updatedAt:
+          updatedRaw == null || updatedRaw.isEmpty ? null : DateTime.tryParse(updatedRaw),
+    );
   }
 
   Future<void> _persistState(DeviceState state) async {
@@ -254,6 +287,7 @@ class StarlineRepository {
               'alarm': state.alarm,
               'doorsClosed': state.doorsClosed,
               'online': state.online,
+              'valet': state.valet,
               'batteryVolts': state.batteryVolts,
               'cabinTempC': state.cabinTempC,
               'engineTempC': state.engineTempC,
@@ -261,6 +295,13 @@ class StarlineRepository {
               'latitude': state.latitude,
               'longitude': state.longitude,
               'address': state.address,
+              if (state.simBalance != null)
+                'simBalance': {
+                  'value': state.simBalance!.value,
+                  'currency': state.simBalance!.currency,
+                  'operatorName': state.simBalance!.operatorName,
+                  'updatedAt': state.simBalance!.updatedAt?.toIso8601String(),
+                },
             }),
             updatedAt: state.updatedAt,
           ),
@@ -281,6 +322,7 @@ class StarlineRepository {
       alarm: p['alarm'] == true,
       doorsClosed: p['doorsClosed'] != false,
       online: p['online'] != false,
+      valet: p['valet'] == true,
       batteryVolts: StarlineMappers.asDouble(p['batteryVolts']),
       cabinTempC: StarlineMappers.asDouble(p['cabinTempC']),
       engineTempC: StarlineMappers.asDouble(p['engineTempC']),
@@ -288,6 +330,7 @@ class StarlineRepository {
       latitude: StarlineMappers.asDouble(p['latitude']),
       longitude: StarlineMappers.asDouble(p['longitude']),
       address: p['address']?.toString(),
+      simBalance: _simBalanceFromPayload(p['simBalance']),
     );
   }
 }
