@@ -1,0 +1,9 @@
+# Copy to android/key.properties (gitignored) and fill with your keystore.
+# Do NOT commit real passwords or the .jks/.keystore file.
+#
+#   cp android/key.properties.example android/key.properties
+#
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=/absolute/path/to/sexy-starline-upload.jks
