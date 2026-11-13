@@ -21,6 +21,13 @@ flutter run
 
 На экране логина нажмите **«Продолжить в демо»** или войдите любым логином — без `STARLINE_APP_*` клиент использует mock.
 
+Демо captcha / SMS (Night Drive UI):
+
+| Логин | Пароль | Код |
+|-------|--------|-----|
+| `captcha` | любой | `1234` или `star` |
+| `sms` | любой | `1234` |
+
 ## Реальный StarLine Open API
 
 Передайте credentials через `--dart-define` (или CI secrets):
@@ -67,12 +74,31 @@ lib/
 5. WebAPI: `Cookie: slnet=…` (Dio interceptor)
 6. HTTP **429** → UI «Лимит запросов» + Drift/memory cache; **401** → re-login
 7. Offline авто — first-class статус на Home
+8. Captcha / SMS: отдельный экран «Подтверждение входа» (4 слота, resend с таймером)
 
 Парсеры вынесены в `StarlineMappers` (покрыты unit-тестами).
 
+### Бюджет запросов (~1000 / сутки)
+
+Open API лимит: **~1000 req/user/day**. Клиент честно учитывает расход и не обещает realtime.
+
+| Триггер | Поведение |
+|---------|-----------|
+| Foreground Home | Авто-poll **120 с** (диапазон политики **90–180 с**) |
+| Близко к лимиту (≥80%) | Интервал тянется до **180 с** + amber-баннер |
+| Остаток ≤50 или 1000/1000 | Авто-poll стоп; pull-to-refresh / команды по ситуации |
+| Pull-to-refresh | Force refresh активного устройства (1 req) |
+| Resume приложения | Refresh, если снимок старше интервала |
+| HTTP 429 | Экран «Лимит запросов», работа с кэшем Drift/memory |
+| Счётчик | Drift `api_usage` по календарному дню; Home / Settings показывают `~N / 1000` |
+
+Целевой спокойный день (1 авто): порядка **100–300 req**. Poll только **активного** устройства.
+
+Реализация: `PollPolicy` + `HomeController` timer / lifecycle; `AppDatabase.incrementRequestCount` на каждый WebAPI/SLID вызов.
+
 ### Навигация
 
-`Splash` → `Login` → [`Captcha`] → `Devices` → Shell (`Home` / `Map` / `Events`)  
+`Splash` → `Login` → [`Captcha` / SMS] → `Devices` → Shell (`Home` / `Map` / `Events`)  
 Settings / Devices — из overflow Home.
 
 ### Команды (`set_param`)

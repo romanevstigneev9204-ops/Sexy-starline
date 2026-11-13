@@ -98,7 +98,18 @@ abstract final class S {
   static const commandPending = 'Команда отправлена…';
   static const commandOk = 'Готово';
   static const commandFail = 'Не удалось выполнить команду';
-  static const captchaTitle = 'Подтверждение';
+  static const captchaTitle = 'Подтверждение входа';
+  static const captchaBody =
+      'Введите код из SMS или captcha из ответа StarLine ID.';
+  static const captchaSmsBody = 'Введите код из SMS, отправленного StarLine ID.';
   static const captchaHint = 'Код из SMS / captcha';
   static const continueLabel = 'Продолжить';
+  static const resendCode = 'Отправить код ещё раз';
+  static const resendCodeNow = 'Отправить код ещё раз';
+  static const backToLogin = 'К экрану входа';
+  static const budgetNearBanner =
+      'Близко к лимиту API — опрос каждые ~3 мин. Тяните для обновления.';
+  static const budgetHomeLabel = 'Бюджет API';
+  static const demoCaptchaHint =
+      'Демо: логин «captcha» или «sms» + любой пароль → экран подтверждения (код 1234).';
 }

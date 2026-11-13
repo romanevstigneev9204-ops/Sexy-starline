@@ -51,7 +51,11 @@ final sessionProvider = Provider<Session?>((ref) {
 
 final homeControllerProvider =
     StateNotifierProvider<HomeController, HomeState>((ref) {
-  return HomeController(ref.watch(repositoryProvider));
+  final controller = HomeController(ref.watch(repositoryProvider));
+  controller.onBudgetChanged = () {
+    ref.invalidate(budgetProvider);
+  };
+  return controller;
 });
 
 final eventsControllerProvider =

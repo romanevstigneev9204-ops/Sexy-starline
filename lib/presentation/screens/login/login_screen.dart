@@ -48,7 +48,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     if (state.status == AuthStatus.authenticated) {
       context.go('/devices');
     } else if (state.status == AuthStatus.needsExtra) {
-      context.push('/captcha');
+      context.go('/captcha');
     }
   }
 
@@ -182,6 +182,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 fontSize: 12,
               ),
             ),
+            if (demo) ...[
+              const SizedBox(height: 12),
+              const Text(
+                S.demoCaptchaHint,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: NightDriveColors.textMuted,
+                  fontSize: 11,
+                  height: 1.35,
+                ),
+              ),
+            ],
           ],
         ),
       ),

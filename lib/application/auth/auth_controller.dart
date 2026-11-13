@@ -15,6 +15,7 @@ class AuthState {
     this.needsCaptcha = false,
     this.needsSms = false,
     this.captchaSid,
+    this.maskedPhone,
     this.busy = false,
   });
 
@@ -24,6 +25,7 @@ class AuthState {
   final bool needsCaptcha;
   final bool needsSms;
   final String? captchaSid;
+  final String? maskedPhone;
   final bool busy;
 
   AuthState copyWith({
@@ -34,6 +36,9 @@ class AuthState {
     bool? needsCaptcha,
     bool? needsSms,
     String? captchaSid,
+    bool clearCaptchaSid = false,
+    String? maskedPhone,
+    bool clearMaskedPhone = false,
     bool? busy,
   }) {
     return AuthState(
@@ -42,7 +47,10 @@ class AuthState {
       error: clearError ? null : (error ?? this.error),
       needsCaptcha: needsCaptcha ?? this.needsCaptcha,
       needsSms: needsSms ?? this.needsSms,
-      captchaSid: captchaSid ?? this.captchaSid,
+      captchaSid:
+          clearCaptchaSid ? null : (captchaSid ?? this.captchaSid),
+      maskedPhone:
+          clearMaskedPhone ? null : (maskedPhone ?? this.maskedPhone),
       busy: busy ?? this.busy,
     );
   }
@@ -82,6 +90,7 @@ class AuthController extends StateNotifier<AuthState> {
           needsCaptcha: result.needsCaptcha,
           needsSms: result.needsSms,
           captchaSid: result.captchaSid,
+          maskedPhone: result.maskedPhone,
         );
       }
       return result;
@@ -130,6 +139,7 @@ class AuthController extends StateNotifier<AuthState> {
           needsCaptcha: result.needsCaptcha,
           needsSms: result.needsSms,
           captchaSid: result.captchaSid,
+          maskedPhone: result.maskedPhone,
           error: 'Нужен повторный код',
         );
       } else {
@@ -140,6 +150,43 @@ class AuthController extends StateNotifier<AuthState> {
       }
     } on StarlineApiException catch (e) {
       state = state.copyWith(busy: false, error: e.message);
+    }
+  }
+
+  /// Re-request SMS / captcha challenge with the same credentials.
+  Future<void> resendExtra() async {
+    final login = _pendingLogin;
+    final password = _pendingPassword;
+    if (login == null || password == null) return;
+    state = state.copyWith(busy: true, clearError: true);
+    try {
+      final result = await _repo.login(login: login, password: password);
+      if (result.isOk && result.session != null) {
+        await _repo.persistSession(result.session!);
+        state = AuthState(
+          status: AuthStatus.authenticated,
+          session: result.session,
+        );
+      } else if (result.needsExtra) {
+        state = AuthState(
+          status: AuthStatus.needsExtra,
+          needsCaptcha: result.needsCaptcha,
+          needsSms: result.needsSms,
+          captchaSid: result.captchaSid,
+          maskedPhone: result.maskedPhone,
+        );
+      } else {
+        state = state.copyWith(
+          busy: false,
+          error: 'Не удалось отправить код снова',
+        );
+      }
+    } on StarlineApiException catch (e) {
+      state = state.copyWith(busy: false, error: e.message);
+    } finally {
+      if (state.status != AuthStatus.authenticated) {
+        state = state.copyWith(busy: false);
+      }
     }
   }
 
@@ -157,8 +204,23 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  /// Demo-only: open captcha/SMS screen without real SLID.
+  Future<void> enterDemoChallenge({required bool sms}) async {
+    _pendingLogin = sms ? 'demo-sms' : 'demo-captcha';
+    _pendingPassword = 'demo';
+    state = AuthState(
+      status: AuthStatus.needsExtra,
+      needsCaptcha: !sms,
+      needsSms: sms,
+      captchaSid: sms ? null : 'demo-captcha-sid',
+      maskedPhone: sms ? '+7 ••• ••• 12-34' : null,
+    );
+  }
+
   Future<void> logout() async {
     await _repo.logout();
+    _pendingLogin = null;
+    _pendingPassword = null;
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 }

@@ -126,6 +126,36 @@ class StarlineApiClient {
   }) async {
     if (useMock) {
       await Future<void>.delayed(const Duration(milliseconds: 350));
+      final normalized = login.trim().toLowerCase();
+
+      // Demo SLID challenges — exercise captcha / SMS UI without AppId.
+      if (normalized == 'demo-sms' || normalized == 'sms') {
+        if (captchaOrSms == null || captchaOrSms.isEmpty) {
+          return LoginResult.needsExtra(
+            sms: true,
+            maskedPhone: '+7 ••• ••• 12-34',
+          );
+        }
+        if (captchaOrSms.replaceAll(RegExp(r'\D'), '') != '1234' &&
+            captchaOrSms.trim() != '1234') {
+          throw StarlineApiException('Неверный код SMS', code: 'bad_sms');
+        }
+      } else if (normalized == 'demo-captcha' || normalized == 'captcha') {
+        if (captchaOrSms == null || captchaOrSms.isEmpty) {
+          return LoginResult.needsExtra(
+            captcha: true,
+            captchaSid: 'demo-captcha-sid',
+          );
+        }
+        if (captchaOrSms.trim().toLowerCase() != 'star' &&
+            captchaOrSms.replaceAll(RegExp(r'\D'), '') != '1234') {
+          throw StarlineApiException(
+            'Неверная captcha',
+            code: 'bad_captcha',
+          );
+        }
+      }
+
       final session = Session(
         slnet: 'demo-slnet',
         userId: 'demo-user',
@@ -233,11 +263,16 @@ class StarlineApiClient {
     final desc = StarlineMappers.slidDesc(data);
 
     // state 1 = ok; 2 = sometimes also ok / partial; 0 + captcha/phone = extra
-    if (state == 0 || desc.containsKey('captchaSid') || desc.containsKey('phone')) {
+    if (state == 0 ||
+        desc.containsKey('captchaSid') ||
+        desc.containsKey('phone') ||
+        desc.containsKey('smsCode')) {
+      final phone = desc['phone']?.toString();
       return LoginResult.needsExtra(
         captcha: desc.containsKey('captchaSid'),
         sms: desc.containsKey('phone') || desc.containsKey('smsCode'),
         captchaSid: desc['captchaSid']?.toString(),
+        maskedPhone: phone == null || phone.isEmpty ? null : _maskPhone(phone),
       );
     }
     if (state != 1 && state != 2) {
@@ -433,6 +468,7 @@ class LoginResult {
     this.needsCaptcha = false,
     this.needsSms = false,
     this.captchaSid,
+    this.maskedPhone,
   });
 
   factory LoginResult.ok(Session session) => LoginResult._(session: session);
@@ -444,11 +480,13 @@ class LoginResult {
     bool captcha = false,
     bool sms = false,
     String? captchaSid,
+    String? maskedPhone,
   }) =>
       LoginResult._(
         needsCaptcha: captcha,
         needsSms: sms,
         captchaSid: captchaSid,
+        maskedPhone: maskedPhone,
       );
 
   final Session? session;
@@ -456,7 +494,15 @@ class LoginResult {
   final bool needsCaptcha;
   final bool needsSms;
   final String? captchaSid;
+  final String? maskedPhone;
 
   bool get isOk => session != null;
   bool get needsExtra => needsCaptcha || needsSms;
+}
+
+String _maskPhone(String raw) {
+  final digits = raw.replaceAll(RegExp(r'\D'), '');
+  if (digits.length < 4) return raw;
+  final tail = digits.substring(digits.length - 4);
+  return '+7 ••• ••• ${tail.substring(0, 2)}-${tail.substring(2)}';
 }

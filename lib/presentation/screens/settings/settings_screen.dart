@@ -29,7 +29,7 @@ class SettingsScreen extends ConsumerWidget {
             budget.when(
               data: (b) => _SettingsTile(
                 title: S.apiLimit,
-                subtitle: '~${b.requestCount} / ${b.dailyLimit} запросов сегодня',
+                subtitle: b.labelRu,
               ),
               loading: () => const _SettingsTile(
                 title: S.apiLimit,

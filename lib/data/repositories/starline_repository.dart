@@ -119,11 +119,12 @@ class StarlineRepository {
   Future<DeviceState> refreshState(
     String deviceId, {
     bool force = false,
+    Duration staleAfter = const Duration(seconds: 90),
   }) async {
     if (!force &&
         _cachedState != null &&
         _cachedState!.deviceId == deviceId &&
-        _cachedState!.age.inSeconds < 90) {
+        _cachedState!.age < staleAfter) {
       return _cachedState!;
     }
     try {
