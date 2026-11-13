@@ -44,11 +44,15 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Secrets — never commit
+# Secrets — never commit AppId / Secret / keystores
 .env
 .env.*
 !.env.example
+*.local
+*.local.*
 **/secrets.dart
+**/Secrets.plist
 *.jks
 *.keystore
 key.properties
+**/key.properties

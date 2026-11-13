@@ -33,7 +33,8 @@ flutter run
 
 ## Реальный StarLine Open API
 
-Передайте credentials через `--dart-define` (или CI secrets):
+Credentials читаются **только** из compile-time `--dart-define` → `String.fromEnvironment` в [`lib/core/config/env.dart`](./lib/core/config/env.dart) (`STARLINE_APP_ID` / `STARLINE_APP_SECRET`).  
+Файл `.env` **не** подхватывается автоматически; [`.env.example`](./.env.example) — шаблон имён. Реальные значения — в shell/CI secrets, **не** в git.
 
 ```bash
 flutter run \
