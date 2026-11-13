@@ -1,0 +1,4 @@
+// Defaults before first Flutter build; Generated.xcconfig overrides when present.
+FLUTTER_BUILD_NAME=0.1.0
+FLUTTER_BUILD_NUMBER=1
+#include? "Generated.xcconfig"

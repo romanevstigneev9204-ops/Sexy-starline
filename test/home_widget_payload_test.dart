@@ -35,6 +35,18 @@ void main() {
       expect(HomeWidgetDeepLink.parse(Uri.parse('https://example.com')), isNull);
       expect(HomeWidgetDeepLink.parse(null), isNull);
     });
+
+    test('iOS URIs include homeWidget query and still parse', () {
+      final uri = HomeWidgetDeepLink.uriFor(HomeWidgetAction.arm, forIos: true);
+      expect(uri.queryParameters.containsKey('homeWidget'), isTrue);
+      expect(HomeWidgetDeepLink.parse(uri), HomeWidgetAction.arm);
+      expect(
+        HomeWidgetDeepLink.parse(
+          Uri.parse('sexystarline://widget/disarm?homeWidget'),
+        ),
+        HomeWidgetAction.disarm,
+      );
+    });
   });
 
   group('HomeWidgetSnapshot', () {
@@ -101,9 +113,10 @@ void main() {
   });
 
   group('HomeWidgetBridge', () {
-    test('syncSnapshot writes keys and updates Android provider name', () async {
+    test('syncSnapshot writes keys and updates Android + iOS names', () async {
       final saved = <String, Object?>{};
       String? updatedAndroid;
+      String? updatedIos;
       final bridge = HomeWidgetBridge(
         enabled: true,
         save: <T>(id, data) async {
@@ -117,8 +130,10 @@ void main() {
           qualifiedAndroidName,
         }) async {
           updatedAndroid = androidName ?? name;
+          updatedIos = iOSName;
           return true;
         },
+        setAppGroupId: (_) async => true,
       );
 
       await bridge.syncFromHome(
@@ -136,6 +151,7 @@ void main() {
       expect(saved[HomeWidgetKeys.armed], isTrue);
       expect(saved[HomeWidgetKeys.statusLabel], 'Под охраной');
       expect(updatedAndroid, kAndroidArmStatusWidgetName);
+      expect(updatedIos, kIosArmStatusWidgetName);
     });
 
     test('disabled bridge is a no-op', () async {
@@ -149,6 +165,11 @@ void main() {
       );
       await bridge.clear();
       expect(saveCalls, 0);
+    });
+
+    test('app group constant matches iOS entitlements', () {
+      expect(kIosAppGroupId, 'group.ru.sexystarline.app');
+      expect(kIosArmStatusWidgetName, 'ArmStatusWidget');
     });
   });
 }

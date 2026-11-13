@@ -77,7 +77,7 @@ final homeWidgetBridgeProvider = Provider<HomeWidgetBridge>((ref) {
   return HomeWidgetBridge();
 });
 
-/// Pending deep-link action from the Android home-screen widget.
+/// Pending deep-link action from the Android / iOS home-screen widget.
 final pendingHomeWidgetActionProvider =
     StateProvider<HomeWidgetAction?>((ref) => null);
 
