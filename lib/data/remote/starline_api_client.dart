@@ -8,7 +8,9 @@ import '../../domain/entities/command.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_state.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/obd_params.dart';
 import '../../domain/entities/session.dart';
+import '../../domain/entities/track.dart';
 import '../mock/mock_catalog.dart';
 import 'starline_api_exception.dart';
 import 'starline_mappers.dart';
@@ -454,6 +456,98 @@ class StarlineApiClient {
     } on DioException catch (e) {
       _rethrow(e);
     }
+  }
+
+  /// On-demand OBD — fuel / mileage / errors. Counts toward daily budget.
+  Future<ObdParams> fetchObdParams(String deviceId) async {
+    if (useMock) {
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      final mock = MockCatalog.obdFor(deviceId);
+      if (mock == null) {
+        throw StarlineApiException(
+          'OBD недоступен для устройства',
+          code: 'obd_unsupported',
+        );
+      }
+      return mock;
+    }
+    await _count();
+    try {
+      final res = await _api.get<Map<String, dynamic>>(
+        '/json/v1/device/$deviceId/obd_params',
+      );
+      final data = res.data ?? {};
+      if (!StarlineMappers.apiCodeOk(data)) {
+        throw StarlineApiException(
+          data['codestring']?.toString() ?? 'obd_params failed',
+          statusCode: StarlineMappers.asInt(data['code']),
+        );
+      }
+      return StarlineMappers.obdParamsFromJson(deviceId, data);
+    } on DioException catch (e) {
+      _rethrow(e);
+    }
+  }
+
+  /// GPS tracks for a period. StarLine Open API: max ~24h window; budget-heavy.
+  Future<TrackPeriod> fetchWays(
+    String deviceId, {
+    required DateTime begin,
+    required DateTime end,
+  }) async {
+    final clamped = _clampWaysWindow(begin, end);
+    if (useMock) {
+      await Future<void>.delayed(const Duration(milliseconds: 280));
+      return MockCatalog.tracksFor(
+        deviceId,
+        begin: clamped.$1,
+        end: clamped.$2,
+      );
+    }
+    await _count();
+    try {
+      final res = await _api.post<Map<String, dynamic>>(
+        '/json/v1/device/$deviceId/ways',
+        data: {
+          'begin': clamped.$1.millisecondsSinceEpoch ~/ 1000,
+          'end': clamped.$2.millisecondsSinceEpoch ~/ 1000,
+          'filtering': true,
+          'split_way': true,
+          'tz': true,
+        },
+      );
+      final data = res.data ?? {};
+      if (!StarlineMappers.apiCodeOk(data)) {
+        throw StarlineApiException(
+          data['codestring']?.toString() ?? 'ways failed',
+          statusCode: StarlineMappers.asInt(data['code']),
+        );
+      }
+      return StarlineMappers.tracksFromJson(
+        deviceId,
+        data,
+        begin: clamped.$1,
+        end: clamped.$2,
+      );
+    } on DioException catch (e) {
+      _rethrow(e);
+    }
+  }
+
+  /// Open API: ways window ≤ 24h.
+  static (DateTime, DateTime) _clampWaysWindow(DateTime begin, DateTime end) {
+    var b = begin;
+    var e = end;
+    if (e.isBefore(b)) {
+      final tmp = b;
+      b = e;
+      e = tmp;
+    }
+    const max = Duration(hours: 24);
+    if (e.difference(b) > max) {
+      e = b.add(max);
+    }
+    return (b, e);
   }
 
   Never _rethrow(DioException e) {

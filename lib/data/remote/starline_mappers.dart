@@ -1,7 +1,9 @@
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_state.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/obd_params.dart';
 import '../../domain/entities/sim_balance.dart';
+import '../../domain/entities/track.dart';
 
 /// Pure parsers for StarLine Open API payloads (testable without Dio).
 abstract final class StarlineMappers {
@@ -223,6 +225,186 @@ abstract final class StarlineMappers {
       return EventKind.status;
     }
     return EventKind.other;
+  }
+
+  /// `GET /json/v1/device/{id}/obd_params` — fuel / mileage / errors.
+  static ObdParams obdParamsFromJson(
+    String deviceId,
+    Map<String, dynamic> json, {
+    DateTime? fetchedAt,
+  }) {
+    final root = json['obd_params'] is Map
+        ? Map<String, dynamic>.from(json['obd_params'] as Map)
+        : json['data'] is Map
+            ? Map<String, dynamic>.from(json['data'] as Map)
+            : json;
+    final nested = root['obd_params'] is Map
+        ? Map<String, dynamic>.from(root['obd_params'] as Map)
+        : root;
+
+    Map<String, dynamic>? asMap(dynamic raw) {
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+      return null;
+    }
+
+    DateTime? tsOf(Map<String, dynamic>? m) {
+      if (m == null) return null;
+      final ts = asDouble(m['ts'] ?? m['updated']);
+      if (ts == null) return null;
+      return DateTime.fromMillisecondsSinceEpoch((ts * 1000).round());
+    }
+
+    final fuel = asMap(nested['fuel']);
+    final mileage = asMap(nested['mileage']);
+    final errors = asMap(nested['errors']);
+
+    ObdFuelUnit fuelUnit = ObdFuelUnit.unknown;
+    final type = fuel?['type']?.toString().toLowerCase();
+    if (type == 'percents' || type == 'percent' || type == '%') {
+      fuelUnit = ObdFuelUnit.percent;
+    } else if (type == 'litres' || type == 'liters' || type == 'l') {
+      fuelUnit = ObdFuelUnit.litres;
+    }
+
+    return ObdParams(
+      deviceId: deviceId,
+      fuelValue: asDouble(fuel?['val'] ?? fuel?['value']),
+      fuelUnit: fuelUnit,
+      mileageKm: asDouble(mileage?['val'] ?? mileage?['value']),
+      errorCount: asInt(errors?['val'] ?? errors?['value'] ?? errors?['count']),
+      fuelUpdatedAt: tsOf(fuel),
+      mileageUpdatedAt: tsOf(mileage),
+      errorsUpdatedAt: tsOf(errors),
+      fetchedAt: fetchedAt ?? DateTime.now(),
+    );
+  }
+
+  /// `POST /json/v1/device/{id}/ways` — GPS tracks for a period (≤24h).
+  static TrackPeriod tracksFromJson(
+    String deviceId,
+    Map<String, dynamic> json, {
+    required DateTime begin,
+    required DateTime end,
+    DateTime? fetchedAt,
+  }) {
+    dynamic raw = json['ways'] ??
+        json['tracks'] ??
+        json['data'] ??
+        json['way'] ??
+        [];
+    if (raw is Map) {
+      raw = raw['ways'] ?? raw['tracks'] ?? raw['list'] ?? [raw];
+    }
+    if (raw is! List) {
+      return TrackPeriod(
+        deviceId: deviceId,
+        begin: begin,
+        end: end,
+        tracks: const [],
+        fetchedAt: fetchedAt ?? DateTime.now(),
+      );
+    }
+
+    final tracks = <GpsTrack>[];
+    for (var i = 0; i < raw.length; i++) {
+      final item = raw[i];
+      if (item is! Map) continue;
+      final map = Map<String, dynamic>.from(item);
+      final points = _trackPointsFrom(map);
+      if (points.isEmpty) continue;
+
+      final startTs = asInt(map['begin'] ?? map['start'] ?? map['ts_start']);
+      final endTs = asInt(map['end'] ?? map['finish'] ?? map['ts_end']);
+      final durationSec = asInt(map['duration'] ?? map['time'] ?? map['moving']);
+      final mileage = asDouble(
+        map['mileage'] ?? map['distance'] ?? map['dist'] ?? map['s'],
+      );
+
+      DateTime? startedAt = startTs == null
+          ? points.first.timestamp
+          : DateTime.fromMillisecondsSinceEpoch(
+              startTs > 2000000000 ? startTs : startTs * 1000,
+            );
+      DateTime? endedAt = endTs == null
+          ? points.last.timestamp
+          : DateTime.fromMillisecondsSinceEpoch(
+              endTs > 2000000000 ? endTs : endTs * 1000,
+            );
+
+      tracks.add(
+        GpsTrack(
+          id: '${map['id'] ?? map['way_id'] ?? i}',
+          deviceId: deviceId,
+          points: points,
+          startedAt: startedAt,
+          endedAt: endedAt,
+          mileageKm: mileage,
+          duration: durationSec == null
+              ? (startedAt != null && endedAt != null
+                  ? endedAt.difference(startedAt)
+                  : null)
+              : Duration(seconds: durationSec),
+        ),
+      );
+    }
+
+    return TrackPeriod(
+      deviceId: deviceId,
+      begin: begin,
+      end: end,
+      tracks: tracks,
+      fetchedAt: fetchedAt ?? DateTime.now(),
+    );
+  }
+
+  static List<TrackPoint> _trackPointsFrom(Map<String, dynamic> map) {
+    final raw = map['points'] ??
+        map['way'] ??
+        map['coords'] ??
+        map['path'] ??
+        map['geometry'];
+    if (raw is! List) return const [];
+    final points = <TrackPoint>[];
+    for (final item in raw) {
+      if (item is List && item.length >= 2) {
+        final lat = asDouble(item[0]);
+        final lon = asDouble(item[1]);
+        if (lat == null || lon == null) continue;
+        final ts = item.length > 2 ? asInt(item[2]) : null;
+        points.add(
+          TrackPoint(
+            latitude: lat,
+            longitude: lon,
+            timestamp: ts == null
+                ? null
+                : DateTime.fromMillisecondsSinceEpoch(
+                    ts > 2000000000 ? ts : ts * 1000,
+                  ),
+            speedKmh: item.length > 3 ? asDouble(item[3]) : null,
+          ),
+        );
+        continue;
+      }
+      if (item is! Map) continue;
+      final p = Map<String, dynamic>.from(item);
+      final lat = asDouble(p['x'] ?? p['lat'] ?? p['latitude']);
+      final lon = asDouble(p['y'] ?? p['lon'] ?? p['lng'] ?? p['longitude']);
+      if (lat == null || lon == null) continue;
+      final ts = asInt(p['t'] ?? p['ts'] ?? p['time'] ?? p['timestamp']);
+      points.add(
+        TrackPoint(
+          latitude: lat,
+          longitude: lon,
+          timestamp: ts == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(
+                  ts > 2000000000 ? ts : ts * 1000,
+                ),
+          speedKmh: asDouble(p['s'] ?? p['speed'] ?? p['v']),
+        ),
+      );
+    }
+    return points;
   }
 
   /// Extract nested SLID `desc` / success flags.

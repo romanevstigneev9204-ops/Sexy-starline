@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../application/providers.dart';
+import '../../../application/tracks/tracks_controller.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/layout.dart';
+import '../../../domain/entities/track.dart';
 import '../../widgets/rate_limit_view.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -19,10 +22,55 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen> {
   bool _bootstrapped = false;
+  String? _tracksLoadedFor;
+  final MapController _mapController = MapController();
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadTracks(String deviceId, {bool force = false}) async {
+    await ref.read(tracksControllerProvider.notifier).load(
+          deviceId,
+          force: force,
+        );
+    ref.invalidate(budgetProvider);
+  }
+
+  void _fitTrack(GpsTrack track) {
+    if (track.points.isEmpty) return;
+    final pts = track.points
+        .map((p) => LatLng(p.latitude, p.longitude))
+        .toList(growable: false);
+    if (pts.length == 1) {
+      _mapController.move(pts.first, 15);
+      return;
+    }
+    var minLat = pts.first.latitude;
+    var maxLat = pts.first.latitude;
+    var minLon = pts.first.longitude;
+    var maxLon = pts.first.longitude;
+    for (final p in pts) {
+      if (p.latitude < minLat) minLat = p.latitude;
+      if (p.latitude > maxLat) maxLat = p.latitude;
+      if (p.longitude < minLon) minLon = p.longitude;
+      if (p.longitude > maxLon) maxLon = p.longitude;
+    }
+    final bounds = LatLngBounds(
+      LatLng(minLat, minLon),
+      LatLng(maxLat, maxLon),
+    );
+    _mapController.fitCamera(
+      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(48)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final home = ref.watch(homeControllerProvider);
+    final tracksState = ref.watch(tracksControllerProvider);
 
     if (!_bootstrapped && home.device == null && !home.loading) {
       _bootstrapped = true;
@@ -31,10 +79,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       );
     }
 
-    if (home.rateLimited) {
+    final deviceId = home.device?.id;
+    final canTracks = home.device?.supportsTracks ?? false;
+    if (deviceId != null &&
+        canTracks &&
+        _tracksLoadedFor != deviceId &&
+        !tracksState.loading) {
+      _tracksLoadedFor = deviceId;
+      Future.microtask(() => _loadTracks(deviceId));
+    }
+
+    if (home.rateLimited || tracksState.rateLimited) {
       return RateLimitView(
-        onAck: () =>
-            ref.read(homeControllerProvider.notifier).acknowledgeRateLimit(),
+        onAck: () {
+          ref.read(homeControllerProvider.notifier).acknowledgeRateLimit();
+          ref.read(tracksControllerProvider.notifier).acknowledgeRateLimit();
+        },
       );
     }
 
@@ -48,6 +108,26 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final address = state?.address ?? 'Координаты авто';
     final hasFix = state?.latitude != null && state?.longitude != null;
 
+    final selected = tracksState.selectedTrack;
+    final polylines = <Polyline>[];
+    if (tracksState.overlayVisible) {
+      for (final track in tracksState.tracks) {
+        if (!track.hasGeometry) continue;
+        final isSelected = selected?.id == track.id;
+        polylines.add(
+          Polyline(
+            points: track.points
+                .map((p) => LatLng(p.latitude, p.longitude))
+                .toList(growable: false),
+            strokeWidth: isSelected ? 4.5 : 3,
+            color: isSelected
+                ? NightDriveColors.cyan
+                : NightDriveColors.cyan.withValues(alpha: 0.35),
+          ),
+        );
+      }
+    }
+
     return Scaffold(
       body: Column(
         children: [
@@ -55,6 +135,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             child: Stack(
               children: [
                 FlutterMap(
+                  mapController: _mapController,
                   options: MapOptions(
                     initialCenter: car,
                     initialZoom: 15,
@@ -68,6 +149,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       subdomains: const ['a', 'b', 'c', 'd'],
                       userAgentPackageName: 'ru.sexystarline.app',
                     ),
+                    if (polylines.isNotEmpty) PolylineLayer(polylines: polylines),
                     MarkerLayer(
                       markers: [
                         Marker(
@@ -121,7 +203,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     ),
                   ],
                 ),
-                if (home.loading)
+                if (home.loading || tracksState.loading)
                   const Positioned(
                     top: 48,
                     left: 0,
@@ -137,7 +219,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       ),
                     ),
                   ),
-                if (home.error != null)
+                if (home.error != null || tracksState.error != null)
                   Positioned(
                     top: 48,
                     left: 16,
@@ -148,7 +230,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(10),
                         child: Text(
-                          home.error!,
+                          home.error ?? tracksState.error!,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: NightDriveColors.danger,
@@ -192,7 +274,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     height: 1.35,
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 FilledButton(
                   onPressed: home.loading
                       ? null
@@ -201,11 +283,172 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           .refresh(force: true),
                   child: const Text(S.refreshPosition),
                 ),
+                if (canTracks && deviceId != null) ...[
+                  const SizedBox(height: 16),
+                  _TracksPanel(
+                    tracksState: tracksState,
+                    onToggleOverlay: () => ref
+                        .read(tracksControllerProvider.notifier)
+                        .setOverlayVisible(!tracksState.overlayVisible),
+                    onRefresh: tracksState.loading
+                        ? null
+                        : () => _loadTracks(deviceId, force: true),
+                    onSelect: (track) {
+                      ref
+                          .read(tracksControllerProvider.notifier)
+                          .selectTrack(track.id);
+                      if (tracksState.overlayVisible) {
+                        _fitTrack(track);
+                      }
+                    },
+                  ),
+                ],
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TracksPanel extends StatelessWidget {
+  const _TracksPanel({
+    required this.tracksState,
+    required this.onToggleOverlay,
+    required this.onRefresh,
+    required this.onSelect,
+  });
+
+  final TracksState tracksState;
+  final VoidCallback onToggleOverlay;
+  final VoidCallback? onRefresh;
+  final ValueChanged<GpsTrack> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final tracks = tracksState.tracks;
+    final dateLabel = DateFormat('d MMMM', 'ru').format(DateTime.now());
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${S.tracksTitle} · $dateLabel',
+                style: GoogleFonts.archivoNarrow(
+                  color: NightDriveColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: tracks.isEmpty ? null : onToggleOverlay,
+              child: Text(
+                tracksState.overlayVisible ? S.tracksHide : S.tracksShow,
+                style: GoogleFonts.barlow(
+                  color: NightDriveColors.cyan,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Text(
+          S.tracksBudgetHint,
+          style: GoogleFonts.barlow(
+            color: NightDriveColors.textMuted,
+            fontSize: 11,
+            height: 1.3,
+          ),
+        ),
+        if (tracksState.throttled) ...[
+          const SizedBox(height: 6),
+          Text(
+            S.tracksThrottle,
+            style: GoogleFonts.barlow(
+              color: NightDriveColors.amber,
+              fontSize: 12,
+              height: 1.3,
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        if (tracks.isEmpty && !tracksState.loading)
+          Text(
+            S.tracksEmpty,
+            style: GoogleFonts.barlow(
+              color: NightDriveColors.textSecondary,
+              fontSize: 13,
+            ),
+          )
+        else
+          ...tracks.map((track) {
+            final selected = tracksState.selectedTrackId == track.id;
+            final start = track.startedAt;
+            final timeLabel = start == null
+                ? '—'
+                : DateFormat('HH:mm', 'ru').format(start);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Material(
+                color: selected
+                    ? NightDriveColors.graphiteElevated
+                    : NightDriveColors.graphiteCard,
+                borderRadius: BorderRadius.circular(NdLayout.radiusSm),
+                child: InkWell(
+                  onTap: () => onSelect(track),
+                  borderRadius: BorderRadius.circular(NdLayout.radiusSm),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(NdLayout.radiusSm),
+                      border: Border.all(
+                        color: selected
+                            ? NightDriveColors.cyan.withValues(alpha: 0.7)
+                            : NightDriveColors.stroke,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          timeLabel,
+                          style: GoogleFonts.archivoNarrow(
+                            color: NightDriveColors.cyan,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '${S.trackMileage} ${track.mileageLabelRu} · '
+                            '${S.trackDuration} ${track.durationLabelRu}',
+                            style: GoogleFonts.barlow(
+                              color: NightDriveColors.textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        OutlinedButton(
+          onPressed: onRefresh,
+          child: const Text(S.tracksRefresh),
+        ),
+      ],
     );
   }
 }

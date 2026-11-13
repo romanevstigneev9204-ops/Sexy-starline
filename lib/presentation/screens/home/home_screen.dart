@@ -338,6 +338,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       : () => _onCommand(DeviceCommand.horn),
                   child: const Text(S.horn),
                 ),
+                if (home.device?.supportsObd == true) ...[
+                  const SizedBox(height: NdLayout.gapLg),
+                  _ObdSection(deviceId: home.device!.id),
+                ],
                 if (_hasSecondary(ctrl)) ...[
                   const SizedBox(height: NdLayout.gapLg),
                   Text(
@@ -456,6 +460,108 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ObdSection extends ConsumerStatefulWidget {
+  const _ObdSection({required this.deviceId});
+
+  final String deviceId;
+
+  @override
+  ConsumerState<_ObdSection> createState() => _ObdSectionState();
+}
+
+class _ObdSectionState extends ConsumerState<_ObdSection> {
+  String? _loadedFor;
+
+  @override
+  Widget build(BuildContext context) {
+    final obd = ref.watch(obdControllerProvider);
+    final deviceId = widget.deviceId;
+    if (_loadedFor != deviceId && !obd.loading) {
+      _loadedFor = deviceId;
+      Future.microtask(
+        () => ref.read(obdControllerProvider.notifier).load(deviceId),
+      );
+    }
+
+    final params = obd.params;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                S.obdSection,
+                style: GoogleFonts.archivoNarrow(
+                  color: NightDriveColors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+            if (obd.loading)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: NightDriveColors.cyan,
+                ),
+              )
+            else
+              TextButton(
+                onPressed: () async {
+                  await ref
+                      .read(obdControllerProvider.notifier)
+                      .load(deviceId, force: true);
+                  ref.invalidate(budgetProvider);
+                },
+                child: Text(
+                  S.obdRefresh,
+                  style: GoogleFonts.barlow(
+                    color: NightDriveColors.cyan,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (obd.unsupported)
+          Text(
+            S.obdUnsupported,
+            style: GoogleFonts.barlow(
+              color: NightDriveColors.textMuted,
+              fontSize: 13,
+            ),
+          )
+        else if (params == null || !params.hasAny)
+          Text(
+            obd.error ?? S.obdEmpty,
+            style: GoogleFonts.barlow(
+              color: NightDriveColors.textMuted,
+              fontSize: 13,
+            ),
+          )
+        else
+          Row(
+            children: [
+              MetricChip(label: S.obdFuel, value: params.fuelLabelRu),
+              const SizedBox(width: NdLayout.metricGap),
+              MetricChip(label: S.obdMileage, value: params.mileageLabelRu),
+              const SizedBox(width: NdLayout.metricGap),
+              MetricChip(
+                label: S.obdErrors,
+                value: params.errorCount?.toString() ?? '—',
+              ),
+            ],
+          ),
+      ],
     );
   }
 }

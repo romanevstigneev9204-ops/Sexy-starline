@@ -27,6 +27,8 @@ void main() {
       expect(bmw.controls, contains('arm_quiet'));
       expect(bmw.controls, contains('panic'));
       expect(bmw.controls, contains('valet'));
+      expect(bmw.functions, contains('obd_params'));
+      expect(bmw.functions, contains('tracking'));
       expect(MockCatalog.stateFor(bmw.id).simBalance?.hasValue, isTrue);
     });
   });

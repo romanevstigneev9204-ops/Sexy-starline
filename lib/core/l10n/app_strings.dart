@@ -82,6 +82,29 @@ abstract final class S {
   // Map
   static const lastPoint = 'Последняя точка';
   static const refreshPosition = 'Обновить позицию';
+  static const tracksTitle = 'Треки за сегодня';
+  static const tracksEmpty = 'Нет поездок за выбранный период';
+  static const tracksLoad = 'Показать треки';
+  static const tracksHide = 'Скрыть трек';
+  static const tracksShow = 'Показать трек';
+  static const tracksRefresh = 'Обновить треки';
+  static const tracksThrottle =
+      'Треки обновляются не чаще раза в 10 мин (лимит StarLine /ways).';
+  static const tracksBudgetHint =
+      'Запрос трека расходует бюджет API · период ≤ 24 ч';
+  static const trackMileage = 'Пробег';
+  static const trackDuration = 'В пути';
+
+  // OBD
+  static const obdTitle = 'OBD';
+  static const obdSection = 'Диагностика OBD';
+  static const obdFuel = 'Топливо';
+  static const obdMileage = 'Пробег';
+  static const obdErrors = 'Ошибки';
+  static const obdUnsupported = 'OBD недоступен на этом устройстве';
+  static const obdRefresh = 'Обновить OBD';
+  static const obdEmpty = 'Нет данных OBD';
+  static const obdDemoHint = 'Демо-данные';
 
   // Events
   static const eventsTitle = 'Журнал событий';
