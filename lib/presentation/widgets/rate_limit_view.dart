@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/colors.dart';
+import '../../core/theme/layout.dart';
 
 class RateLimitView extends StatelessWidget {
   const RateLimitView({super.key, required this.onAck});
@@ -25,12 +27,13 @@ class RateLimitView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: NightDriveColors.amber),
                   ),
-                  child: const Text(
+                  child: Text(
                     S.rateLimitBadge,
-                    style: TextStyle(
+                    style: GoogleFonts.archivoNarrow(
                       color: NightDriveColors.amber,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
+                      letterSpacing: 1.4,
+                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -38,21 +41,34 @@ class RateLimitView extends StatelessWidget {
                 Text(
                   S.rateLimitTitle,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: GoogleFonts.archivoNarrow(
+                    color: NightDriveColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 32,
+                    height: 1.1,
+                  ),
                 ),
-                const SizedBox(height: 12),
-                const Text(
+                const SizedBox(height: 14),
+                Text(
                   S.rateLimitBody,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: GoogleFonts.barlow(
                     color: NightDriveColors.textSecondary,
-                    height: 1.4,
+                    fontSize: 14,
+                    height: 1.45,
                   ),
                 ),
                 const SizedBox(height: 28),
-                FilledButton(
-                  onPressed: onAck,
-                  child: const Text(S.rateLimitCta),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      minimumSize:
+                          const Size.fromHeight(NdLayout.buttonHeight),
+                    ),
+                    onPressed: onAck,
+                    child: const Text(S.rateLimitCta),
+                  ),
                 ),
               ],
             ),

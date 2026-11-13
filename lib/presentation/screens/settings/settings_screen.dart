@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/layout.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -17,13 +19,18 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          padding: const EdgeInsets.fromLTRB(
+            NdLayout.pagePad,
+            16,
+            NdLayout.pagePad,
+            24,
+          ),
           children: [
             Text(
               S.settingsTitle,
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: NdLayout.gapXl),
             const _SettingsTile(title: S.theme, subtitle: S.themeValue),
             const SizedBox(height: 10),
             budget.when(
@@ -44,7 +51,7 @@ class SettingsScreen extends ConsumerWidget {
             _SettingsTile(
               title: S.devices,
               subtitle:
-                  '${home.device?.alias ?? '—'} · ${S.devicePrimary.toUpperCase()}',
+                  '${home.device?.alias ?? '—'} · ${S.devicePrimary.toLowerCase()}',
               onTap: () => context.push('/devices'),
             ),
             const SizedBox(height: 10),
@@ -79,22 +86,35 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: NightDriveColors.graphiteCard,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(NdLayout.radiusMd),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
+        borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+        child: Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+            border: Border.all(color: NightDriveColors.stroke),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                title,
+                style: GoogleFonts.archivoNarrow(
+                  color: NightDriveColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                ),
+              ),
               const SizedBox(height: 6),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: GoogleFonts.barlow(
                   color: NightDriveColors.textSecondary,
                   fontSize: 13,
+                  height: 1.35,
                 ),
               ),
             ],

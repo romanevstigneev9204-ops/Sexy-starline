@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/layout.dart';
 import '../../widgets/rate_limit_view.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -60,8 +62,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                   children: [
                     TileLayer(
+                      // Dark Night Drive base (CartoDB Dark Matter).
                       urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                      subdomains: const ['a', 'b', 'c', 'd'],
                       userAgentPackageName: 'ru.sexystarline.sexy_starline',
                     ),
                     MarkerLayer(
@@ -71,29 +75,43 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           width: 14,
                           height: 14,
                           child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
+                            decoration: BoxDecoration(
+                              color: NightDriveColors.textSecondary,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: NightDriveColors.graphite,
+                                width: 2,
+                              ),
                             ),
                           ),
                         ),
                         Marker(
                           point: car,
-                          width: 32,
-                          height: 32,
+                          width: 40,
+                          height: 40,
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color:
-                                  NightDriveColors.cyan.withValues(alpha: 0.22),
+                              color: NightDriveColors.cyan.withValues(
+                                alpha: 0.18,
+                              ),
                             ),
                             child: Center(
                               child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: const BoxDecoration(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
                                   color: NightDriveColors.cyan,
                                   shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: NightDriveColors.cyan.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                      blurRadius: 10,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -146,22 +164,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           Container(
             width: double.infinity,
             color: NightDriveColors.graphite,
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            padding: const EdgeInsets.fromLTRB(
+              NdLayout.pagePad,
+              16,
+              NdLayout.pagePad,
+              12,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   S.lastPoint,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: GoogleFonts.archivoNarrow(
+                    color: NightDriveColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   hasFix
                       ? '$address · обновлено $mins мин назад'
                       : 'Нет координат · потяните обновление',
-                  style: const TextStyle(
+                  style: GoogleFonts.barlow(
                     color: NightDriveColors.textSecondary,
                     fontSize: 13,
+                    height: 1.35,
                   ),
                 ),
                 const SizedBox(height: 14),

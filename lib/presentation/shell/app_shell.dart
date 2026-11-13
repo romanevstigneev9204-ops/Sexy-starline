@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/colors.dart';
@@ -20,7 +21,7 @@ class AppShell extends StatelessWidget {
         ),
         padding: EdgeInsets.only(
           bottom: MediaQuery.paddingOf(context).bottom,
-          top: 8,
+          top: 10,
         ),
         child: Row(
           children: [
@@ -69,7 +70,8 @@ class _NavItem extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
@@ -80,7 +82,7 @@ class _NavItem extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 label,
-                style: TextStyle(
+                style: GoogleFonts.barlow(
                   color: color,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 13,

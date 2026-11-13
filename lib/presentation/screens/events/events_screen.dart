@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/layout.dart';
 import '../../../domain/entities/event.dart';
 import '../../widgets/rate_limit_view.dart';
 
@@ -60,7 +62,12 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: const EdgeInsets.fromLTRB(
+                NdLayout.pagePad,
+                16,
+                NdLayout.pagePad,
+                0,
+              ),
               child: Text(
                 S.eventsTitle,
                 style: Theme.of(context).textTheme.headlineLarge,
@@ -68,7 +75,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             ),
             const SizedBox(height: 14),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: NdLayout.pagePad),
               child: Row(
                 children: [
                   _FilterChip(
@@ -97,21 +104,22 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: NdLayout.gapLg),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: NdLayout.pagePad),
               child: Text(
                 dateLabel,
-                style: const TextStyle(
+                style: GoogleFonts.barlow(
                   color: NightDriveColors.textMuted,
                   fontSize: 12,
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: NdLayout.gapSm),
             if (eventsState.error != null)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: NdLayout.pagePad),
                 child: Text(
                   eventsState.error!,
                   style: const TextStyle(color: NightDriveColors.danger),
@@ -131,7 +139,12 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                           .load(deviceId, force: true),
                       child: ListView.separated(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                        padding: const EdgeInsets.fromLTRB(
+                          NdLayout.pagePad,
+                          0,
+                          NdLayout.pagePad,
+                          24,
+                        ),
                         itemCount: eventsState.visible.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, i) {
@@ -156,7 +169,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                     children: [
                                       Text(
                                         e.title,
-                                        style: const TextStyle(
+                                        style: GoogleFonts.barlow(
                                           color: NightDriveColors.textPrimary,
                                           fontWeight: FontWeight.w600,
                                           fontSize: 15,
@@ -165,7 +178,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                       const SizedBox(height: 4),
                                       Text(
                                         '${S.today}, ${DateFormat('HH:mm').format(e.timestamp)}',
-                                        style: const TextStyle(
+                                        style: GoogleFonts.barlow(
                                           color: NightDriveColors.textMuted,
                                           fontSize: 12,
                                         ),
@@ -222,12 +235,18 @@ class _FilterChip extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(10),
-          child: Padding(
+          child: Container(
             padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: selected
+                  ? null
+                  : Border.all(color: NightDriveColors.stroke),
+            ),
             child: Text(
               label,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.barlow(
                 color: selected
                     ? NightDriveColors.graphite
                     : NightDriveColors.textSecondary,

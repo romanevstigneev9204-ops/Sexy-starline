@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../application/auth/auth_controller.dart';
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/layout.dart';
 import '../../widgets/brand_mark.dart';
 
 /// Night Drive captcha / SMS confirmation (v1 screenshots).
@@ -101,30 +103,33 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          padding: const EdgeInsets.fromLTRB(
+            NdLayout.pagePad,
+            16,
+            NdLayout.pagePad,
+            24,
+          ),
           children: [
             const BrandMark(),
-            const SizedBox(height: 28),
+            const SizedBox(height: NdLayout.gapXxl),
             Text(
               S.captchaTitle,
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: NdLayout.gapSm),
             Text(
               subtitle,
-              style: const TextStyle(
-                color: NightDriveColors.textSecondary,
-                height: 1.35,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    height: 1.4,
+                  ),
             ),
             const SizedBox(height: 36),
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => _focus.requestFocus(),
               child: Stack(
-                alignment: Alignment.center,
+                alignment: Alignment.centerLeft,
                 children: [
-                  // Hidden field drives the 4 visual slots.
                   SizedBox(
                     height: 64,
                     child: TextField(
@@ -137,6 +142,8 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
                       cursorColor: Colors.transparent,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
                         filled: false,
                         counterText: '',
                         contentPadding: EdgeInsets.zero,
@@ -154,7 +161,6 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
                   ),
                   IgnorePointer(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(_slotCount, (i) {
                         final chars = _code.split('');
                         final filled = i < chars.length;
@@ -173,10 +179,9 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
               ),
             ),
             if (auth.error != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: NdLayout.gapLg),
               Text(
                 auth.error!,
-                textAlign: TextAlign.center,
                 style: const TextStyle(color: NightDriveColors.danger),
               ),
             ],
@@ -187,39 +192,58 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
                   ? const SizedBox(
                       width: 22,
                       height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: NightDriveColors.graphite,
+                      ),
                     )
                   : const Text(S.continueLabel),
             ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: auth.busy || _resendSeconds > 0 ? null : _resend,
-              child: Text(
-                _resendSeconds > 0
-                    ? '${S.resendCode} · ${_mmss(_resendSeconds)}'
-                    : S.resendCodeNow,
-                style: TextStyle(
-                  color: _resendSeconds > 0
-                      ? NightDriveColors.textMuted
-                      : NightDriveColors.cyan,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+            const SizedBox(height: NdLayout.gapLg),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: auth.busy || _resendSeconds > 0 ? null : _resend,
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  _resendSeconds > 0
+                      ? '${S.resendCode} · ${_mmss(_resendSeconds)}'
+                      : S.resendCodeNow,
+                  style: GoogleFonts.barlow(
+                    color: _resendSeconds > 0
+                        ? NightDriveColors.textMuted
+                        : NightDriveColors.cyan,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: auth.busy
-                  ? null
-                  : () {
-                      ref.read(authControllerProvider.notifier).logout();
-                      context.go('/login');
-                    },
-              child: const Text(
-                S.backToLogin,
-                style: TextStyle(
-                  color: NightDriveColors.textMuted,
-                  fontSize: 13,
+            const SizedBox(height: NdLayout.gapSm),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: auth.busy
+                    ? null
+                    : () {
+                        ref.read(authControllerProvider.notifier).logout();
+                        context.go('/login');
+                      },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  S.backToLogin,
+                  style: GoogleFonts.barlow(
+                    color: NightDriveColors.textMuted,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ),
@@ -246,20 +270,20 @@ class _CodeSlot extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: NightDriveColors.graphiteInput,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(NdLayout.radiusSm),
         border: Border.all(
           color: active
               ? NightDriveColors.cyan
               : filled
                   ? NightDriveColors.stroke
-                  : NightDriveColors.stroke.withValues(alpha: 0.7),
+                  : NightDriveColors.stroke.withValues(alpha: 0.85),
           width: active ? 1.5 : 1,
         ),
       ),
       child: filled
           ? Text(
               char!,
-              style: const TextStyle(
+              style: GoogleFonts.archivoNarrow(
                 color: NightDriveColors.textPrimary,
                 fontWeight: FontWeight.w700,
                 fontSize: 22,

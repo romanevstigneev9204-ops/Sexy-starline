@@ -1,52 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/colors.dart';
+import '../../core/theme/layout.dart';
+
+Widget _sheetHandle() {
+  return Container(
+    width: 36,
+    height: 4,
+    decoration: BoxDecoration(
+      color: NightDriveColors.stroke,
+      borderRadius: BorderRadius.circular(2),
+    ),
+  );
+}
 
 Future<bool> showDisarmConfirm(BuildContext context) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
+    backgroundColor: NightDriveColors.graphiteElevated,
+    barrierColor: NightDriveColors.scrim,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(NdLayout.radiusSheet),
+      ),
+    ),
     builder: (ctx) {
       return Padding(
         padding: EdgeInsets.fromLTRB(
-          20,
+          NdLayout.pagePad,
           12,
-          20,
-          24 + MediaQuery.paddingOf(ctx).bottom,
+          NdLayout.pagePad,
+          20 + MediaQuery.paddingOf(ctx).bottom,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: NightDriveColors.stroke,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
+            _sheetHandle(),
+            const SizedBox(height: 22),
             Text(
               S.disarmTitle,
-              style: Theme.of(ctx).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.archivoNarrow(
+                color: NightDriveColors.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
+                height: 1.2,
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            const SizedBox(height: 10),
+            Text(
               S.disarmBody,
               textAlign: TextAlign.center,
-              style: TextStyle(color: NightDriveColors.textSecondary),
+              style: GoogleFonts.barlow(
+                color: NightDriveColors.textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text(S.disarmConfirm),
             ),
+            const SizedBox(height: 4),
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text(
+              child: Text(
                 S.cancel,
-                style: TextStyle(color: NightDriveColors.textSecondary),
+                style: GoogleFonts.barlow(
+                  color: NightDriveColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
               ),
             ),
           ],
@@ -61,6 +89,13 @@ Future<bool> showStartHoldConfirm(BuildContext context) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
+    backgroundColor: NightDriveColors.graphiteElevated,
+    barrierColor: NightDriveColors.scrim,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(NdLayout.radiusSheet),
+      ),
+    ),
     builder: (ctx) => const _HoldToStartSheet(),
   );
   return result ?? false;
@@ -100,32 +135,35 @@ class _HoldToStartSheetState extends State<_HoldToStartSheet>
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        20,
+        NdLayout.pagePad,
         12,
-        20,
-        24 + MediaQuery.paddingOf(context).bottom,
+        NdLayout.pagePad,
+        20 + MediaQuery.paddingOf(context).bottom,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: NightDriveColors.stroke,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
+          _sheetHandle(),
+          const SizedBox(height: 22),
           Text(
             S.startTitle,
-            style: Theme.of(context).textTheme.headlineSmall,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.archivoNarrow(
+              color: NightDriveColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 22,
+              height: 1.2,
+            ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: 10),
+          Text(
             S.startBody,
             textAlign: TextAlign.center,
-            style: TextStyle(color: NightDriveColors.textSecondary),
+            style: GoogleFonts.barlow(
+              color: NightDriveColors.textSecondary,
+              fontSize: 14,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 24),
           AnimatedBuilder(
@@ -136,10 +174,10 @@ class _HoldToStartSheetState extends State<_HoldToStartSheet>
                 onTapUp: (_) => _ctrl.reverse(),
                 onTapCancel: () => _ctrl.reverse(),
                 child: SizedBox(
-                  height: 52,
+                  height: NdLayout.buttonHeight,
                   width: double.infinity,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(NdLayout.radiusSm),
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -153,10 +191,10 @@ class _HoldToStartSheetState extends State<_HoldToStartSheet>
                             ),
                           ),
                         ),
-                        const Center(
+                        Center(
                           child: Text(
                             S.startHold,
-                            style: TextStyle(
+                            style: GoogleFonts.barlow(
                               color: NightDriveColors.graphite,
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
@@ -170,11 +208,16 @@ class _HoldToStartSheetState extends State<_HoldToStartSheet>
               );
             },
           ),
+          const SizedBox(height: 4),
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
+            child: Text(
               S.cancel,
-              style: TextStyle(color: NightDriveColors.textSecondary),
+              style: GoogleFonts.barlow(
+                color: NightDriveColors.textSecondary,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
             ),
           ),
         ],
