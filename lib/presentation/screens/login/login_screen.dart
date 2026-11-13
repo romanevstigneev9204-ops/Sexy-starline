@@ -23,6 +23,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   final _login = TextEditingController();
   final _password = TextEditingController();
   late final AnimationController _float;
+  bool _showCredentials = false;
 
   @override
   void initState() {
@@ -53,10 +54,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
+  Future<void> _enterDemo() async {
+    await ref.read(authControllerProvider.notifier).enterDemo();
+    if (!mounted) return;
+    if (ref.read(authControllerProvider).status == AuthStatus.authenticated) {
+      context.go('/devices');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final demo = ref.watch(envDemoProvider);
+    final showForm = !demo || _showCredentials;
 
     return Scaffold(
       body: SafeArea(
@@ -130,56 +140,89 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       ),
                 ),
               ),
+              const SizedBox(height: NdLayout.gapXl),
+              FilledButton(
+                onPressed: auth.busy ? null : _enterDemo,
+                child: auth.busy
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: NightDriveColors.graphite,
+                        ),
+                      )
+                    : Text(S.loginDemoCta),
+              ),
+              const SizedBox(height: NdLayout.gapMd),
+              if (!showForm)
+                OutlinedButton(
+                  onPressed: auth.busy
+                      ? null
+                      : () => setState(() => _showCredentials = true),
+                  child: Text(S.loginRealCta),
+                ),
+            ] else ...[
+              const SizedBox(height: NdLayout.gapXl),
             ],
-            const SizedBox(height: NdLayout.gapXl),
-            TextField(
-              controller: _login,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              style: Theme.of(context).textTheme.bodyLarge,
-              decoration: const InputDecoration(hintText: S.loginHint),
-            ),
-            const SizedBox(height: NdLayout.gapMd),
-            TextField(
-              controller: _password,
-              obscureText: true,
-              onSubmitted: (_) => _submit(),
-              style: Theme.of(context).textTheme.bodyLarge,
-              decoration: const InputDecoration(hintText: S.passwordHint),
-            ),
-            if (auth.error != null) ...[
+            if (showForm) ...[
+              if (demo) const SizedBox(height: NdLayout.gapXl),
+              TextField(
+                controller: _login,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                style: Theme.of(context).textTheme.bodyLarge,
+                decoration: InputDecoration(hintText: S.loginHint),
+              ),
+              const SizedBox(height: NdLayout.gapMd),
+              TextField(
+                controller: _password,
+                obscureText: true,
+                onSubmitted: (_) => _submit(),
+                style: Theme.of(context).textTheme.bodyLarge,
+                decoration: InputDecoration(hintText: S.passwordHint),
+              ),
+              if (auth.error != null) ...[
+                const SizedBox(height: NdLayout.gapMd),
+                Text(
+                  auth.error!,
+                  style: const TextStyle(color: NightDriveColors.danger),
+                ),
+              ],
+              const SizedBox(height: NdLayout.gapXl),
+              if (demo)
+                OutlinedButton(
+                  onPressed: auth.busy ? null : _submit,
+                  child: auth.busy
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: NightDriveColors.cyan,
+                          ),
+                        )
+                      : Text(S.loginCta),
+                )
+              else
+                FilledButton(
+                  onPressed: auth.busy ? null : _submit,
+                  child: auth.busy
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: NightDriveColors.graphite,
+                          ),
+                        )
+                      : Text(S.loginCta),
+                ),
+            ] else if (auth.error != null) ...[
               const SizedBox(height: NdLayout.gapMd),
               Text(
                 auth.error!,
                 style: const TextStyle(color: NightDriveColors.danger),
-              ),
-            ],
-            const SizedBox(height: NdLayout.gapXl),
-            FilledButton(
-              onPressed: auth.busy ? null : _submit,
-              child: auth.busy
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: NightDriveColors.graphite,
-                      ),
-                    )
-                  : const Text(S.loginCta),
-            ),
-            if (demo) ...[
-              const SizedBox(height: NdLayout.gapMd),
-              OutlinedButton(
-                onPressed: auth.busy
-                    ? null
-                    : () async {
-                        await ref
-                            .read(authControllerProvider.notifier)
-                            .enterDemo();
-                        if (context.mounted) context.go('/devices');
-                      },
-                child: const Text(S.loginDemoCta),
               ),
             ],
             const SizedBox(height: 28),
@@ -188,7 +231,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            if (demo) ...[
+            if (demo && showForm) ...[
               const SizedBox(height: NdLayout.gapMd),
               Text(
                 S.demoCaptchaHint,

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/app_strings.dart';
 import '../../data/remote/starline_api_client.dart';
 import '../../data/remote/starline_api_exception.dart';
 import '../../data/repositories/starline_repository.dart';
@@ -200,7 +201,7 @@ class AuthController extends StateNotifier<AuthState> {
         session: result.session,
       );
     } else {
-      state = state.copyWith(busy: false, error: 'Демо недоступно');
+      state = state.copyWith(busy: false, error: S.demoUnavailable);
     }
   }
 

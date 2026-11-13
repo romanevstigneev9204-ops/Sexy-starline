@@ -181,7 +181,7 @@ class GeofencePanel extends ConsumerWidget {
         const SizedBox(height: 10),
         OutlinedButton(
           onPressed: () => _openEditor(context, ref),
-          child: const Text(S.geofenceAdd),
+          child: Text(S.geofenceAdd),
         ),
       ],
     );
@@ -264,7 +264,7 @@ class _GeofenceEditorSheetState extends State<_GeofenceEditorSheet> {
           const SizedBox(height: 16),
           TextField(
             controller: _name,
-            decoration: const InputDecoration(hintText: S.geofenceNameHint),
+            decoration: InputDecoration(hintText: S.geofenceNameHint),
           ),
           const SizedBox(height: 16),
           Text(
@@ -326,7 +326,7 @@ class _GeofenceEditorSheetState extends State<_GeofenceEditorSheet> {
                 ),
               );
             },
-            child: const Text(S.geofenceSave),
+            child: Text(S.geofenceSave),
           ),
           if (existing != null) ...[
             const SizedBox(height: 4),
@@ -340,7 +340,7 @@ class _GeofenceEditorSheetState extends State<_GeofenceEditorSheet> {
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 messenger?.showSnackBar(
-                  const SnackBar(content: Text(S.geofenceDelete)),
+                  SnackBar(content: Text(S.geofenceDelete)),
                 );
               },
               child: Text(

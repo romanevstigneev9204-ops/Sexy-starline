@@ -140,7 +140,7 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
                       showCursor: false,
                       style: const TextStyle(color: Colors.transparent),
                       cursorColor: Colors.transparent,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
@@ -197,7 +197,7 @@ class _CaptchaScreenState extends ConsumerState<CaptchaScreen> {
                         color: NightDriveColors.graphite,
                       ),
                     )
-                  : const Text(S.continueLabel),
+                  : Text(S.continueLabel),
             ),
             const SizedBox(height: NdLayout.gapLg),
             Align(

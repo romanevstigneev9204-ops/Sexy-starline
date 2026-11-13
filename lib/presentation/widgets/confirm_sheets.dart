@@ -64,7 +64,7 @@ Future<bool> showDisarmConfirm(BuildContext context) async {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text(S.disarmConfirm),
+              child: Text(S.disarmConfirm),
             ),
             const SizedBox(height: 4),
             TextButton(
@@ -425,9 +425,159 @@ class _ThemeSheetBodyState extends State<_ThemeSheetBody> {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () => Navigator.pop(context, _selected),
-            child: const Text(S.themeClose),
+            child: Text(S.themeClose),
           ),
         ],
+      ),
+    );
+  }
+}
+
+Future<AppLanguage?> showLanguageSheet(
+  BuildContext context, {
+  required AppLanguage current,
+}) {
+  return showModalBottomSheet<AppLanguage>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: NightDriveColors.graphiteElevated,
+    barrierColor: NightDriveColors.scrim,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(NdLayout.radiusSheet),
+      ),
+    ),
+    builder: (ctx) => _LanguageSheetBody(current: current),
+  );
+}
+
+class _LanguageSheetBody extends StatefulWidget {
+  const _LanguageSheetBody({required this.current});
+
+  final AppLanguage current;
+
+  @override
+  State<_LanguageSheetBody> createState() => _LanguageSheetBodyState();
+}
+
+class _LanguageSheetBodyState extends State<_LanguageSheetBody> {
+  late AppLanguage _selected = widget.current;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        NdLayout.pagePad,
+        12,
+        NdLayout.pagePad,
+        20 + MediaQuery.paddingOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _sheetHandle(),
+          const SizedBox(height: 22),
+          Text(
+            S.languageSheetTitle,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.archivoNarrow(
+              color: NightDriveColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 22,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 16),
+          for (final language in AppLanguage.values) ...[
+            _LanguageOptionTile(
+              language: language,
+              selected: _selected == language,
+              onTap: () => setState(() => _selected = language),
+            ),
+            const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 8),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, _selected),
+            child: Text(S.themeClose),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageOptionTile extends StatelessWidget {
+  const _LanguageOptionTile({
+    required this.language,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppLanguage language;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected
+          ? NightDriveColors.graphiteCard
+          : NightDriveColors.graphite,
+      borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+            border: Border.all(
+              color: selected
+                  ? NightDriveColors.cyan.withValues(alpha: 0.7)
+                  : NightDriveColors.stroke,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+                color: selected
+                    ? NightDriveColors.cyan
+                    : NightDriveColors.textMuted,
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      language.settingsLabel,
+                      style: GoogleFonts.archivoNarrow(
+                        color: NightDriveColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      language.settingsHint,
+                      style: GoogleFonts.barlow(
+                        color: NightDriveColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
