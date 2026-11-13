@@ -1,6 +1,7 @@
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_state.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/geofence.dart';
 import '../../domain/entities/obd_params.dart';
 import '../../domain/entities/sim_balance.dart';
 import '../../domain/entities/track.dart';
@@ -32,6 +33,8 @@ abstract final class MockCatalog {
         'arm_quiet',
         'panic',
         'valet',
+        'webasto',
+        'out',
       ],
       controls: [
         'arm',
@@ -40,6 +43,8 @@ abstract final class MockCatalog {
         'arm_quiet',
         'panic',
         'valet',
+        'webasto',
+        'out',
       ],
       simBalance: demoSimBalance,
     ),
@@ -57,8 +62,9 @@ abstract final class MockCatalog {
         'ign',
         'poke',
         'arm_quiet',
+        'webasto',
       ],
-      controls: ['arm', 'ign', 'poke', 'arm_quiet'],
+      controls: ['arm', 'ign', 'poke', 'arm_quiet', 'webasto'],
       simBalance: SimBalance(
         value: 52,
         currency: '₽',
@@ -94,6 +100,8 @@ abstract final class MockCatalog {
       doorsClosed: true,
       online: !offline,
       valet: false,
+      webasto: false,
+      auxOn: false,
       batteryVolts: 12.4,
       cabinTempC: 4,
       engineTempC: 12,
@@ -239,5 +247,35 @@ abstract final class MockCatalog {
       tracks: [recent, older],
       fetchedAt: now,
     );
+  }
+
+  /// Demo client geofences around Лесная — local only, no StarLine API.
+  static List<Geofence> geofencesFor(String deviceId) {
+    return [
+      Geofence(
+        id: 'demo-gf-home-$deviceId',
+        deviceId: deviceId,
+        name: 'Дом',
+        latitude: 55.7784,
+        longitude: 37.5865,
+        radiusMeters: 250,
+        enabled: true,
+        alertOnEnter: true,
+        alertOnExit: true,
+        lastSide: GeofenceSide.inside,
+      ),
+      Geofence(
+        id: 'demo-gf-office-$deviceId',
+        deviceId: deviceId,
+        name: 'Офис',
+        latitude: 55.7890,
+        longitude: 37.6145,
+        radiusMeters: 300,
+        enabled: true,
+        alertOnEnter: true,
+        alertOnExit: true,
+        lastSide: GeofenceSide.outside,
+      ),
+    ];
   }
 }

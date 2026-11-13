@@ -9,6 +9,10 @@ enum DeviceCommand {
   panic,
   valetOn,
   valetOff,
+  webastoOn,
+  webastoOff,
+  auxOn,
+  auxOff,
 }
 
 extension DeviceCommandX on DeviceCommand {
@@ -20,6 +24,8 @@ extension DeviceCommandX on DeviceCommand {
         DeviceCommand.horn => 'poke',
         DeviceCommand.panic => 'panic',
         DeviceCommand.valetOn || DeviceCommand.valetOff => 'valet',
+        DeviceCommand.webastoOn || DeviceCommand.webastoOff => 'webasto',
+        DeviceCommand.auxOn || DeviceCommand.auxOff => 'out',
       };
 
   /// Value for set_param body.
@@ -29,12 +35,16 @@ extension DeviceCommandX on DeviceCommand {
         DeviceCommand.start ||
         DeviceCommand.horn ||
         DeviceCommand.panic ||
-        DeviceCommand.valetOn =>
+        DeviceCommand.valetOn ||
+        DeviceCommand.webastoOn ||
+        DeviceCommand.auxOn =>
           1,
         DeviceCommand.disarm ||
         DeviceCommand.quietDisarm ||
         DeviceCommand.stop ||
-        DeviceCommand.valetOff =>
+        DeviceCommand.valetOff ||
+        DeviceCommand.webastoOff ||
+        DeviceCommand.auxOff =>
           0,
       };
 
@@ -66,16 +76,41 @@ extension DeviceCommandX on DeviceCommand {
             'valet',
             'service',
           ],
+        DeviceCommand.webastoOn || DeviceCommand.webastoOff => const [
+            'webasto',
+            'heater',
+            'web_asto',
+          ],
+        DeviceCommand.auxOn || DeviceCommand.auxOff => const [
+            'out',
+            'aux',
+            'channel',
+            'additional_channel',
+          ],
       };
 
-  /// Secondary P1 actions — only when capability lists declare support
+  /// Secondary / comfort actions — only when capability lists declare support
   /// (empty lists still allow core arm/start/horn for unknown devices).
   bool get isSecondary => switch (this) {
         DeviceCommand.quietArm ||
         DeviceCommand.quietDisarm ||
         DeviceCommand.panic ||
         DeviceCommand.valetOn ||
-        DeviceCommand.valetOff =>
+        DeviceCommand.valetOff ||
+        DeviceCommand.webastoOn ||
+        DeviceCommand.webastoOff ||
+        DeviceCommand.auxOn ||
+        DeviceCommand.auxOff =>
+          true,
+        _ => false,
+      };
+
+  /// Comfort block on Home (webasto / aux channel).
+  bool get isComfort => switch (this) {
+        DeviceCommand.webastoOn ||
+        DeviceCommand.webastoOff ||
+        DeviceCommand.auxOn ||
+        DeviceCommand.auxOff =>
           true,
         _ => false,
       };
@@ -88,7 +123,9 @@ extension DeviceCommandX on DeviceCommand {
       this == DeviceCommand.quietDisarm ||
       this == DeviceCommand.start ||
       this == DeviceCommand.panic ||
-      this == DeviceCommand.valetOn;
+      this == DeviceCommand.valetOn ||
+      this == DeviceCommand.webastoOn ||
+      this == DeviceCommand.auxOn;
 
   bool get requiresHold => this == DeviceCommand.start;
 }
@@ -104,7 +141,7 @@ abstract final class CommandGate {
         {...controls, ...functions}.map((e) => e.toLowerCase()).toSet();
     if (pool.isEmpty) {
       // Unknown capabilities — allow core commands only (owner MVP).
-      // Secondary P1 (quiet/panic/valet) need an explicit control/function.
+      // Secondary / comfort need an explicit control/function.
       return !command.isSecondary;
     }
     return command.capabilityKeys

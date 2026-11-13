@@ -108,11 +108,15 @@ Settings / Devices — из overflow Home.
 | UI | param |
 |----|--------|
 | Поставить / снять охрану | `arm` 1/0 |
+| Тихая охрана | `arm_quiet` 1/0 |
 | Запуск / стоп | `ign` 1/0 |
 | Сигнал | `poke` 1 |
+| Паника / сервис | `panic` / `valet` |
+| Webasto / доп. канал | `webasto` / `out` 1/0 |
 
-- Disarm — явный confirm; Start — hold ≥1.2 с
-- `CommandGate` / `CommandPipeline` гейтят по `controls`/`functions`
+- Disarm — явный confirm; Start — hold ≥1.2 с; Webasto/AUX on — confirm
+- `CommandGate` / `CommandPipeline` гейтят по `controls`/`functions` (comfort — только при явном capability)
+- Клиентские геозоны: локальный CRUD + круги на карте; алерты по GPS из Home-poll (**0** доп. req к StarLine)
 
 ## Экраны MVP
 

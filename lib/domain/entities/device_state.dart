@@ -12,6 +12,8 @@ class DeviceState extends Equatable {
     this.doorsClosed = true,
     this.online = true,
     this.valet = false,
+    this.webasto = false,
+    this.auxOn = false,
     this.batteryVolts,
     this.cabinTempC,
     this.engineTempC,
@@ -30,6 +32,8 @@ class DeviceState extends Equatable {
   final bool doorsClosed;
   final bool online;
   final bool valet;
+  final bool webasto;
+  final bool auxOn;
   final double? batteryVolts;
   final double? cabinTempC;
   final double? engineTempC;
@@ -50,6 +54,8 @@ class DeviceState extends Equatable {
     bool? doorsClosed,
     bool? online,
     bool? valet,
+    bool? webasto,
+    bool? auxOn,
     double? batteryVolts,
     double? cabinTempC,
     double? engineTempC,
@@ -69,6 +75,8 @@ class DeviceState extends Equatable {
       doorsClosed: doorsClosed ?? this.doorsClosed,
       online: online ?? this.online,
       valet: valet ?? this.valet,
+      webasto: webasto ?? this.webasto,
+      auxOn: auxOn ?? this.auxOn,
       batteryVolts: batteryVolts ?? this.batteryVolts,
       cabinTempC: cabinTempC ?? this.cabinTempC,
       engineTempC: engineTempC ?? this.engineTempC,
@@ -90,6 +98,8 @@ class DeviceState extends Equatable {
         doorsClosed,
         online,
         valet,
+        webasto,
+        auxOn,
         batteryVolts,
         cabinTempC,
         engineTempC,

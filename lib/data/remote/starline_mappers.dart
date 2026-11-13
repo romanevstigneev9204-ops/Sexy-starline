@@ -167,6 +167,8 @@ abstract final class StarlineMappers {
       doorsClosed: !doorsOpen,
       online: online,
       valet: asBool(carState['valet']) || asBool(carState['service']),
+      webasto: asBool(carState['webasto']),
+      auxOn: asBool(carState['out']) || asBool(carState['aux']),
       batteryVolts: asDouble(root['battery'] ?? root['akb'] ?? carState['battery']),
       cabinTempC: asDouble(root['ctemp'] ?? root['mayak_temp']),
       engineTempC: asDouble(root['etemp']),

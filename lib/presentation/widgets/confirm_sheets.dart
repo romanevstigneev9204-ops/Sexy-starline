@@ -104,6 +104,24 @@ Future<bool> showValetConfirm(BuildContext context) async {
   );
 }
 
+Future<bool> showWebastoConfirm(BuildContext context) async {
+  return _showSimpleConfirm(
+    context,
+    title: S.webastoTitle,
+    body: S.webastoBody,
+    confirmLabel: S.webastoConfirm,
+  );
+}
+
+Future<bool> showAuxConfirm(BuildContext context) async {
+  return _showSimpleConfirm(
+    context,
+    title: S.auxTitle,
+    body: S.auxBody,
+    confirmLabel: S.auxConfirm,
+  );
+}
+
 Future<bool> _showSimpleConfirm(
   BuildContext context, {
   required String title,
