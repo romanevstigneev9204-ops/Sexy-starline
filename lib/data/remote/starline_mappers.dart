@@ -1,6 +1,7 @@
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_state.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/sim_balance.dart';
 
 /// Pure parsers for StarLine Open API payloads (testable without Dio).
 abstract final class StarlineMappers {
@@ -27,6 +28,41 @@ abstract final class StarlineMappers {
   static List<String> stringList(dynamic raw) {
     if (raw is! List) return const [];
     return raw.map((e) => '$e').where((e) => e.isNotEmpty).toList();
+  }
+
+  /// `balance.active` from user_info / device data (HA / pystarline).
+  static SimBalance? simBalanceFromJson(dynamic raw) {
+    if (raw == null) return null;
+    Map<String, dynamic>? active;
+    if (raw is Map) {
+      final map = Map<String, dynamic>.from(raw);
+      final nested = map['active'];
+      if (nested is Map) {
+        active = Map<String, dynamic>.from(nested);
+      } else if (map.containsKey('value') || map.containsKey('balance')) {
+        active = map;
+      }
+    }
+    if (active == null) return null;
+    final value = asDouble(active['value'] ?? active['balance'] ?? active['amount']);
+    final currency = '${active['currency'] ?? '₽'}';
+    final operatorName =
+        active['operator']?.toString() ?? active['operatorName']?.toString();
+    final ts = asDouble(active['ts'] ?? active['updated']);
+    final updatedAt = ts == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch((ts * 1000).round());
+    if (value == null &&
+        (operatorName == null || operatorName.isEmpty) &&
+        updatedAt == null) {
+      return null;
+    }
+    return SimBalance(
+      value: value,
+      currency: currency.isEmpty ? '₽' : currency,
+      operatorName: operatorName,
+      updatedAt: updatedAt,
+    );
   }
 
   /// StarLine GSM often reports 1–30; UI Night Drive uses bars 0–5.
@@ -58,10 +94,12 @@ abstract final class StarlineMappers {
             alias: '${map['alias'] ?? map['name'] ?? 'Устройство'}',
             typeName: map['typename']?.toString() ?? map['type']?.toString(),
             imei: map['imei']?.toString(),
+            phone: map['phone']?.toString(),
             online: online,
             gsmLevel: gsmBars(map['gsm_lvl'] ?? map['gsm']),
             functions: stringList(map['functions']),
             controls: stringList(map['controls']),
+            simBalance: simBalanceFromJson(map['balance']),
             isShared: shared,
           ),
         );
@@ -126,6 +164,7 @@ abstract final class StarlineMappers {
               (root['car_alr_state'] as Map).values.any(asBool)),
       doorsClosed: !doorsOpen,
       online: online,
+      valet: asBool(carState['valet']) || asBool(carState['service']),
       batteryVolts: asDouble(root['battery'] ?? root['akb'] ?? carState['battery']),
       cabinTempC: asDouble(root['ctemp'] ?? root['mayak_temp']),
       engineTempC: asDouble(root['etemp']),
@@ -133,6 +172,7 @@ abstract final class StarlineMappers {
       latitude: asDouble(pos['x'] ?? pos['lat']),
       longitude: asDouble(pos['y'] ?? pos['lon']),
       address: root['address']?.toString() ?? pos['address']?.toString(),
+      simBalance: simBalanceFromJson(root['balance']),
     );
   }
 

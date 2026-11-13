@@ -1,18 +1,43 @@
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_state.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/sim_balance.dart';
 
 abstract final class MockCatalog {
+  static const demoSimBalance = SimBalance(
+    value: 186.40,
+    currency: '₽',
+    operatorName: 'МТС',
+  );
+
   static final devices = <Device>[
     const Device(
       id: 'demo-bmw',
       alias: 'BMW X5',
       typeName: 'S96',
+      phone: '+79001234567',
       online: true,
       gsmLevel: 4,
       isPrimary: true,
-      functions: ['state', 'position', 'arm', 'ign', 'poke'],
-      controls: ['arm', 'ign', 'poke'],
+      functions: [
+        'state',
+        'position',
+        'arm',
+        'ign',
+        'poke',
+        'arm_quiet',
+        'panic',
+        'valet',
+      ],
+      controls: [
+        'arm',
+        'ign',
+        'poke',
+        'arm_quiet',
+        'panic',
+        'valet',
+      ],
+      simBalance: demoSimBalance,
     ),
     const Device(
       id: 'demo-skoda',
@@ -20,8 +45,13 @@ abstract final class MockCatalog {
       typeName: 'A96',
       online: true,
       gsmLevel: 3,
-      functions: ['state', 'position', 'arm', 'ign', 'poke'],
-      controls: ['arm', 'ign', 'poke'],
+      functions: ['state', 'position', 'arm', 'ign', 'poke', 'arm_quiet'],
+      controls: ['arm', 'ign', 'poke', 'arm_quiet'],
+      simBalance: SimBalance(
+        value: 52,
+        currency: '₽',
+        operatorName: 'Билайн',
+      ),
     ),
     const Device(
       id: 'demo-vesta',
@@ -37,6 +67,13 @@ abstract final class MockCatalog {
 
   static DeviceState stateFor(String deviceId, {bool offline = false}) {
     final now = DateTime.now();
+    SimBalance? balance;
+    for (final d in devices) {
+      if (d.id == deviceId) {
+        balance = d.simBalance;
+        break;
+      }
+    }
     return DeviceState(
       deviceId: deviceId,
       updatedAt: offline ? now.subtract(const Duration(minutes: 42)) : now,
@@ -44,6 +81,7 @@ abstract final class MockCatalog {
       engineRunning: false,
       doorsClosed: true,
       online: !offline,
+      valet: false,
       batteryVolts: 12.4,
       cabinTempC: 4,
       engineTempC: 12,
@@ -51,6 +89,7 @@ abstract final class MockCatalog {
       latitude: 55.7784,
       longitude: 37.5865,
       address: 'Москва, ул. Лесная',
+      simBalance: balance ?? demoSimBalance,
     );
   }
 

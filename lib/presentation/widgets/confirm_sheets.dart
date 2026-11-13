@@ -85,6 +85,106 @@ Future<bool> showDisarmConfirm(BuildContext context) async {
   return result ?? false;
 }
 
+Future<bool> showPanicConfirm(BuildContext context) async {
+  return _showSimpleConfirm(
+    context,
+    title: S.panicTitle,
+    body: S.panicBody,
+    confirmLabel: S.panicConfirm,
+    danger: true,
+  );
+}
+
+Future<bool> showValetConfirm(BuildContext context) async {
+  return _showSimpleConfirm(
+    context,
+    title: S.valetTitle,
+    body: S.valetBody,
+    confirmLabel: S.valetConfirm,
+  );
+}
+
+Future<bool> _showSimpleConfirm(
+  BuildContext context, {
+  required String title,
+  required String body,
+  required String confirmLabel,
+  bool danger = false,
+}) async {
+  final result = await showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: NightDriveColors.graphiteElevated,
+    barrierColor: NightDriveColors.scrim,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(NdLayout.radiusSheet),
+      ),
+    ),
+    builder: (ctx) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(
+          NdLayout.pagePad,
+          12,
+          NdLayout.pagePad,
+          20 + MediaQuery.paddingOf(ctx).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _sheetHandle(),
+            const SizedBox(height: 22),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.archivoNarrow(
+                color: NightDriveColors.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.barlow(
+                color: NightDriveColors.textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              style: danger
+                  ? FilledButton.styleFrom(
+                      backgroundColor: NightDriveColors.danger,
+                      foregroundColor: NightDriveColors.textPrimary,
+                    )
+                  : null,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(confirmLabel),
+            ),
+            const SizedBox(height: 4),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                S.cancel,
+                style: GoogleFonts.barlow(
+                  color: NightDriveColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+  return result ?? false;
+}
+
 Future<bool> showStartHoldConfirm(BuildContext context) async {
   final result = await showModalBottomSheet<bool>(
     context: context,

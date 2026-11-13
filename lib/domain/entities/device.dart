@@ -1,15 +1,19 @@
 import 'package:equatable/equatable.dart';
 
+import 'sim_balance.dart';
+
 class Device extends Equatable {
   const Device({
     required this.id,
     required this.alias,
     this.typeName,
     this.imei,
+    this.phone,
     this.online = false,
     this.gsmLevel,
     this.functions = const [],
     this.controls = const [],
+    this.simBalance,
     this.isPrimary = false,
     this.isShared = false,
   });
@@ -18,10 +22,12 @@ class Device extends Equatable {
   final String alias;
   final String? typeName;
   final String? imei;
+  final String? phone;
   final bool online;
   final int? gsmLevel;
   final List<String> functions;
   final List<String> controls;
+  final SimBalance? simBalance;
   final bool isPrimary;
   final bool isShared;
 
@@ -35,10 +41,13 @@ class Device extends Equatable {
     String? alias,
     String? typeName,
     String? imei,
+    String? phone,
     bool? online,
     int? gsmLevel,
     List<String>? functions,
     List<String>? controls,
+    SimBalance? simBalance,
+    bool clearSimBalance = false,
     bool? isPrimary,
     bool? isShared,
   }) {
@@ -47,10 +56,12 @@ class Device extends Equatable {
       alias: alias ?? this.alias,
       typeName: typeName ?? this.typeName,
       imei: imei ?? this.imei,
+      phone: phone ?? this.phone,
       online: online ?? this.online,
       gsmLevel: gsmLevel ?? this.gsmLevel,
       functions: functions ?? this.functions,
       controls: controls ?? this.controls,
+      simBalance: clearSimBalance ? null : (simBalance ?? this.simBalance),
       isPrimary: isPrimary ?? this.isPrimary,
       isShared: isShared ?? this.isShared,
     );
@@ -62,10 +73,12 @@ class Device extends Equatable {
         alias,
         typeName,
         imei,
+        phone,
         online,
         gsmLevel,
         functions,
         controls,
+        simBalance,
         isPrimary,
         isShared,
       ];

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../application/home/home_controller.dart';
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
@@ -10,6 +11,15 @@ import '../../../core/theme/layout.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  String _simSubtitle(HomeState home, bool demo) {
+    final balance = home.state?.simBalance ?? home.device?.simBalance;
+    if (balance == null || !balance.hasValue) {
+      return demo ? '${S.simBalanceEmpty} · ${S.simBalanceDemoHint}' : S.simBalanceEmpty;
+    }
+    final base = balance.labelRu;
+    return demo ? '$base · ${S.simBalanceDemoHint}' : base;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,6 +56,11 @@ class SettingsScreen extends ConsumerWidget {
                 title: S.apiLimit,
                 subtitle: '—',
               ),
+            ),
+            const SizedBox(height: 10),
+            _SettingsTile(
+              title: S.simBalance,
+              subtitle: _simSubtitle(home, ref.watch(envDemoProvider)),
             ),
             const SizedBox(height: 10),
             _SettingsTile(

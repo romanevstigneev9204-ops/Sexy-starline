@@ -373,16 +373,21 @@ class StarlineApiClient {
     if (useMock) {
       await Future<void>.delayed(const Duration(milliseconds: 450));
       final current = await fetchDeviceState(deviceId);
+      final now = DateTime.now();
       final next = switch (command) {
-        DeviceCommand.arm =>
-          current.copyWith(armed: true, updatedAt: DateTime.now()),
-        DeviceCommand.disarm =>
-          current.copyWith(armed: false, updatedAt: DateTime.now()),
+        DeviceCommand.arm || DeviceCommand.quietArm =>
+          current.copyWith(armed: true, updatedAt: now),
+        DeviceCommand.disarm || DeviceCommand.quietDisarm =>
+          current.copyWith(armed: false, updatedAt: now),
         DeviceCommand.start =>
-          current.copyWith(engineRunning: true, updatedAt: DateTime.now()),
+          current.copyWith(engineRunning: true, updatedAt: now),
         DeviceCommand.stop =>
-          current.copyWith(engineRunning: false, updatedAt: DateTime.now()),
-        DeviceCommand.horn => current.copyWith(updatedAt: DateTime.now()),
+          current.copyWith(engineRunning: false, updatedAt: now),
+        DeviceCommand.horn || DeviceCommand.panic =>
+          current.copyWith(updatedAt: now),
+        DeviceCommand.valetOn => current.copyWith(valet: true, updatedAt: now),
+        DeviceCommand.valetOff =>
+          current.copyWith(valet: false, updatedAt: now),
       };
       _mockStates[deviceId] = next;
       return;

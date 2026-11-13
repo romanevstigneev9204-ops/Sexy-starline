@@ -14,8 +14,16 @@ void main() {
             'typename': 'S96',
             'status': 1,
             'gsm_lvl': 24,
-            'functions': ['state', 'arm', 'ign', 'poke'],
-            'controls': ['arm', 'ign', 'poke'],
+            'functions': ['state', 'arm', 'ign', 'poke', 'arm_quiet', 'panic'],
+            'controls': ['arm', 'ign', 'poke', 'arm_quiet', 'panic', 'valet'],
+            'balance': {
+              'active': {
+                'value': 186.4,
+                'currency': '₽',
+                'operator': 'МТС',
+                'ts': 1700000000,
+              },
+            },
           },
         ],
         'shared_devices': [
@@ -33,6 +41,8 @@ void main() {
       expect(devices.first.isPrimary, isTrue);
       expect(devices.first.online, isTrue);
       expect(devices.first.gsmLevel, inInclusiveRange(1, 5));
+      expect(devices.first.simBalance?.value, closeTo(186.4, 0.01));
+      expect(devices.first.simBalance?.operatorName, 'МТС');
       expect(devices.last.isShared, isTrue);
       expect(devices.last.online, isFalse);
     });
@@ -47,6 +57,7 @@ void main() {
           'ign': '0',
           'door': false,
           'run': '0',
+          'valet': '1',
         },
         'battery': 12.4,
         'ctemp': 4,
@@ -54,16 +65,22 @@ void main() {
         'gsm_lvl': 18,
         'status': 1,
         'position': {'x': 55.77, 'y': 37.58, 'ts': 1700000000},
+        'balance': {
+          'active': {'value': 50, 'currency': '₽', 'operator': 'Билайн'},
+        },
       });
 
       expect(state.armed, isTrue);
       expect(state.engineRunning, isFalse);
       expect(state.doorsClosed, isTrue);
       expect(state.online, isTrue);
+      expect(state.valet, isTrue);
       expect(state.batteryVolts, 12.4);
       expect(state.cabinTempC, 4);
       expect(state.latitude, closeTo(55.77, 0.001));
       expect(state.longitude, closeTo(37.58, 0.001));
+      expect(state.simBalance?.value, 50);
+      expect(state.simBalance?.labelRu, contains('Билайн'));
     });
 
     test('engine running from r_start / run', () {
@@ -73,6 +90,21 @@ void main() {
       });
       expect(state.engineRunning, isTrue);
       expect(state.armed, isFalse);
+    });
+  });
+
+  group('simBalanceFromJson', () {
+    test('reads active nested balance', () {
+      final bal = StarlineMappers.simBalanceFromJson({
+        'active': {'value': '12.5', 'currency': '₽', 'operator': 'МТС'},
+      });
+      expect(bal?.value, 12.5);
+      expect(bal?.labelRu, '12.50 ₽ · МТС');
+    });
+
+    test('returns null for empty payload', () {
+      expect(StarlineMappers.simBalanceFromJson(null), isNull);
+      expect(StarlineMappers.simBalanceFromJson(<String, dynamic>{}), isNull);
     });
   });
 
