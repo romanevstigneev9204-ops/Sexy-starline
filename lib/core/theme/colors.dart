@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Night Drive design tokens (v1 — approved).
+/// Night Drive design tokens (v1 — approved; not Glass v2).
 abstract final class NightDriveColors {
   static const Color graphite = Color(0xFF0B0E12);
-  static const Color graphiteElevated = Color(0xFF14181F);
+  static const Color graphiteElevated = Color(0xFF12161D);
   static const Color graphiteCard = Color(0xFF1A1F28);
   static const Color graphiteInput = Color(0xFF1E242E);
   static const Color cyan = Color(0xFF3DDBD9);
@@ -15,4 +15,5 @@ abstract final class NightDriveColors {
   static const Color stroke = Color(0xFF2A3140);
   static const Color strokeCyan = Color(0xFF3DDBD9);
   static const Color navInactive = Color(0xFF6B7380);
+  static const Color scrim = Color(0xCC05070A);
 }

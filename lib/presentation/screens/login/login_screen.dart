@@ -8,6 +8,7 @@ import '../../../application/auth/auth_controller.dart';
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/layout.dart';
 import '../../widgets/brand_mark.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -60,107 +61,115 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          padding: const EdgeInsets.fromLTRB(
+            NdLayout.pagePad,
+            16,
+            NdLayout.pagePad,
+            24,
+          ),
           children: [
             const BrandMark(),
-            const SizedBox(height: 28),
+            const SizedBox(height: NdLayout.gapXxl),
             Text(
               S.loginTitle,
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-            const SizedBox(height: 8),
-            const Text(
+            const SizedBox(height: NdLayout.gapSm),
+            Text(
               S.loginSubtitle,
-              style: TextStyle(
-                color: NightDriveColors.textSecondary,
-                height: 1.35,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    height: 1.4,
+                  ),
             ),
             const SizedBox(height: 24),
             AnimatedBuilder(
               animation: _float,
               builder: (context, child) {
-                final dy = math.sin(_float.value * math.pi) * 6;
+                final dy = math.sin(_float.value * math.pi) * 5;
                 return Transform.translate(offset: Offset(0, dy), child: child);
               },
               child: Container(
-                height: 120,
+                height: 132,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(NdLayout.radiusLg),
                   gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFF0E2A2A),
-                      Color(0xFF142028),
+                      Color(0xFF0F2C2B),
+                      Color(0xFF121820),
                       Color(0xFF0B0E12),
                     ],
+                  ),
+                  border: Border.all(
+                    color: NightDriveColors.stroke.withValues(alpha: 0.55),
                   ),
                 ),
                 child: CustomPaint(
                   painter: _StripePainter(),
-                  child: const Center(
-                    child: Icon(
-                      Icons.directions_car_filled_outlined,
-                      color: NightDriveColors.cyan,
-                      size: 40,
-                    ),
-                  ),
+                  child: const SizedBox.expand(),
                 ),
               ),
             ),
             if (demo) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: NdLayout.gapLg),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: NightDriveColors.graphiteCard,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: NightDriveColors.amber.withValues(alpha: 0.5)),
-                ),
-                child: const Text(
-                  S.demoBanner,
-                  style: TextStyle(
-                    color: NightDriveColors.amber,
-                    fontSize: 13,
+                  borderRadius: BorderRadius.circular(NdLayout.radiusSm),
+                  border: Border.all(
+                    color: NightDriveColors.amber.withValues(alpha: 0.5),
                   ),
+                ),
+                child: Text(
+                  S.demoBanner,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: NightDriveColors.amber,
+                        fontSize: 13,
+                      ),
                 ),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: NdLayout.gapXl),
             TextField(
               controller: _login,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
+              style: Theme.of(context).textTheme.bodyLarge,
               decoration: const InputDecoration(hintText: S.loginHint),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: NdLayout.gapMd),
             TextField(
               controller: _password,
               obscureText: true,
               onSubmitted: (_) => _submit(),
+              style: Theme.of(context).textTheme.bodyLarge,
               decoration: const InputDecoration(hintText: S.passwordHint),
             ),
             if (auth.error != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: NdLayout.gapMd),
               Text(
                 auth.error!,
                 style: const TextStyle(color: NightDriveColors.danger),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: NdLayout.gapXl),
             FilledButton(
               onPressed: auth.busy ? null : _submit,
               child: auth.busy
                   ? const SizedBox(
                       width: 22,
                       height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: NightDriveColors.graphite,
+                      ),
                     )
                   : const Text(S.loginCta),
             ),
             if (demo) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: NdLayout.gapMd),
               OutlinedButton(
                 onPressed: auth.busy
                     ? null
@@ -173,25 +182,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 child: const Text(S.loginDemoCta),
               ),
             ],
-            const SizedBox(height: 24),
-            const Text(
+            const SizedBox(height: 28),
+            Text(
               S.loginFooter,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: NightDriveColors.textMuted,
-                fontSize: 12,
-              ),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
             if (demo) ...[
-              const SizedBox(height: 12),
-              const Text(
+              const SizedBox(height: NdLayout.gapMd),
+              Text(
                 S.demoCaptchaHint,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: NightDriveColors.textMuted,
-                  fontSize: 11,
-                  height: 1.35,
-                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      height: 1.35,
+                    ),
               ),
             ],
           ],
@@ -205,9 +210,9 @@ class _StripePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = NightDriveColors.cyan.withValues(alpha: 0.08)
+      ..color = NightDriveColors.cyan.withValues(alpha: 0.07)
       ..strokeWidth = 1;
-    for (double x = -size.height; x < size.width; x += 10) {
+    for (double x = -size.height; x < size.width; x += 11) {
       canvas.drawLine(
         Offset(x, size.height),
         Offset(x + size.height, 0),

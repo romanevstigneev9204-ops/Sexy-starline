@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme/colors.dart';
+import '../../core/theme/layout.dart';
 
 class MetricChip extends StatelessWidget {
   const MetricChip({
@@ -16,27 +18,34 @@ class MetricChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.fromLTRB(10, 10, 8, 12),
         decoration: BoxDecoration(
           color: NightDriveColors.graphiteCard,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(NdLayout.radiusSm),
+          border: Border.all(color: NightDriveColors.stroke.withValues(alpha: 0.7)),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: GoogleFonts.barlow(
                 color: NightDriveColors.textMuted,
                 fontSize: 11,
+                fontWeight: FontWeight.w500,
+                height: 1.1,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               value,
-              style: const TextStyle(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.archivoNarrow(
                 color: NightDriveColors.textPrimary,
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
+                height: 1.1,
               ),
             ),
           ],

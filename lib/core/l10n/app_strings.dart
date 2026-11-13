@@ -60,7 +60,7 @@ abstract final class S {
   static const disarmConfirm = 'Да, снять с охраны';
   static const startTitle = 'Запустить двигатель?';
   static const startBody =
-      'Команда уйдет в StarLine. Убедитесь, что авто в безопасном месте.';
+      'Команда уйдёт в StarLine. Убедитесь, что авто в безопасном месте.';
   static const startHold = 'Удерживайте, чтобы запустить';
   static const cancel = 'Отмена';
 
@@ -87,9 +87,9 @@ abstract final class S {
 
   // 429
   static const rateLimitBadge = 'HTTP 429';
-  static const rateLimitTitle = 'Лимит запросов';
+  static const rateLimitTitle = 'Лимит\nзапросов';
   static const rateLimitBody =
-      'Достигнут дневной лимит StarLine Open API (~1000). Показываем кэш. Обновление — завтра или реже.';
+      'Достигнут дневной лимит StarLine Open API (~1000).\nПоказываем кэш. Обновление — завтра или реже.';
   static const rateLimitCta = 'Понятно, работать с кэшем';
 
   // Misc

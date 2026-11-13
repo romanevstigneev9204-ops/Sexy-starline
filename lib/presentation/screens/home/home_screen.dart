@@ -3,10 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/layout.dart';
 import '../../../domain/entities/command.dart';
 import '../../widgets/confirm_sheets.dart';
 import '../../widgets/metric_chip.dart';
@@ -118,7 +120,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            padding: const EdgeInsets.fromLTRB(
+              NdLayout.pagePad,
+              12,
+              NdLayout.pagePad,
+              24,
+            ),
             children: [
               Row(
                 children: [
@@ -133,7 +140,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         const SizedBox(height: 4),
                         Text(
                           offline ? S.noLink : _freshness(state?.updatedAt),
-                          style: TextStyle(
+                          style: GoogleFonts.barlow(
                             color: offline
                                 ? NightDriveColors.danger
                                 : NightDriveColors.textMuted,
@@ -156,7 +163,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ),
                     ),
                   PopupMenuButton<String>(
-                    color: NightDriveColors.graphiteCard,
                     onSelected: (v) {
                       if (v == 'devices') context.push('/devices');
                       if (v == 'settings') context.push('/settings');
@@ -184,20 +190,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ],
               ),
               if (home.budgetNearLimit) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: NdLayout.gapMd),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: NightDriveColors.graphiteCard,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(NdLayout.radiusSm),
                     border: Border.all(
                       color: NightDriveColors.amber.withValues(alpha: 0.55),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     S.budgetNearBanner,
-                    style: TextStyle(
+                    style: GoogleFonts.barlow(
                       color: NightDriveColors.amber,
                       fontSize: 13,
                       height: 1.35,
@@ -206,13 +212,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               ],
               if (home.error != null && !offline) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: NdLayout.gapMd),
                 Text(
                   home.error!,
                   style: const TextStyle(color: NightDriveColors.danger),
                 ),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: NdLayout.gapXl),
               if (offline)
                 _OfflineCard(
                   mins: state?.age.inMinutes ?? 42,
@@ -238,21 +244,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           ? '${state!.batteryVolts!.toStringAsFixed(1)} В'
                           : '—',
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: NdLayout.metricGap),
                     MetricChip(
                       label: S.cabin,
                       value: state?.cabinTempC != null
                           ? '${state!.cabinTempC! >= 0 ? '+' : ''}${state.cabinTempC!.round()}°'
                           : '—',
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: NdLayout.metricGap),
                     MetricChip(
                       label: S.engineTemp,
                       value: state?.engineTempC != null
                           ? '${state!.engineTempC! >= 0 ? '+' : ''}${state.engineTempC!.round()}°'
                           : '—',
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: NdLayout.metricGap),
                     MetricChip(
                       label: S.gsm,
                       value: state?.gsmLevel != null
@@ -261,7 +267,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: NdLayout.gapLg),
                 Row(
                   children: [
                     Expanded(
@@ -318,12 +324,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   child: const Text(S.horn),
                 ),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: NdLayout.gapXl),
               budget.when(
                 data: (b) => Text(
-                  '${S.budgetHomeLabel} · ~${b.requestCount} req сегодня',
+                  '${S.budgetHomeLabel}: ~${b.requestCount} req сегодня',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: GoogleFonts.barlow(
                     color: b.isNearLimit
                         ? NightDriveColors.amber
                         : NightDriveColors.textMuted,
@@ -369,15 +375,15 @@ class _StatusCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
         color: NightDriveColors.graphiteElevated,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: NightDriveColors.cyan.withValues(alpha: 0.7)),
+        borderRadius: BorderRadius.circular(NdLayout.radiusLg),
+        border: Border.all(color: NightDriveColors.cyan.withValues(alpha: 0.75)),
       ),
       child: Column(
         children: [
           AnimatedBuilder(
             animation: pulse,
             builder: (context, child) {
-              final t = 0.85 + (math.sin(pulse.value * math.pi) * 0.15);
+              final t = 0.88 + (math.sin(pulse.value * math.pi) * 0.12);
               return Transform.scale(
                 scale: t,
                 child: Opacity(
@@ -395,21 +401,26 @@ class _StatusCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: NdLayout.gapLg),
           Text(
             armed ? S.armed : S.disarmed,
-            style: const TextStyle(
+            style: GoogleFonts.archivoNarrow(
               color: NightDriveColors.cyan,
               fontWeight: FontWeight.w800,
               fontSize: 26,
-              letterSpacing: 1,
+              letterSpacing: 1.2,
+              height: 1.1,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: NdLayout.gapSm),
           Text(
             detail,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: NightDriveColors.textSecondary),
+            style: GoogleFonts.barlow(
+              color: NightDriveColors.textSecondary,
+              fontSize: 13,
+              height: 1.35,
+            ),
           ),
         ],
       ),
@@ -429,40 +440,49 @@ class _OfflineCard extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
           decoration: BoxDecoration(
-            color: NightDriveColors.graphiteElevated,
-            borderRadius: BorderRadius.circular(18),
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(NdLayout.radiusLg),
             border: Border.all(
-              color: NightDriveColors.danger.withValues(alpha: 0.7),
+              color: NightDriveColors.danger.withValues(alpha: 0.85),
             ),
           ),
           child: Column(
             children: [
-              const Text(
+              Text(
                 S.offline,
-                style: TextStyle(
+                style: GoogleFonts.archivoNarrow(
                   color: NightDriveColors.danger,
                   fontWeight: FontWeight.w800,
                   fontSize: 28,
-                  letterSpacing: 1,
+                  letterSpacing: 1.4,
+                  height: 1.1,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 S.offlineDetail.replaceAll('{mins}', '$mins'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: NightDriveColors.textSecondary),
+                style: GoogleFonts.barlow(
+                  color: NightDriveColors.textSecondary,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: NdLayout.gapLg),
         FilledButton(onPressed: onCheck, child: const Text(S.checkLink)),
         const SizedBox(height: 10),
-        const Text(
+        Text(
           S.checkSim,
-          style: TextStyle(color: NightDriveColors.textMuted, fontSize: 12),
+          textAlign: TextAlign.center,
+          style: GoogleFonts.barlow(
+            color: NightDriveColors.textMuted,
+            fontSize: 12,
+          ),
         ),
       ],
     );

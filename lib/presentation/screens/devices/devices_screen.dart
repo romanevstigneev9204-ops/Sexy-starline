@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/layout.dart';
 import '../../../domain/entities/device.dart';
 
 class DevicesScreen extends ConsumerWidget {
@@ -23,21 +25,26 @@ class DevicesScreen extends ConsumerWidget {
           error: (e, _) => Center(child: Text('$e')),
           data: (devices) {
             return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              padding: const EdgeInsets.fromLTRB(
+                NdLayout.pagePad,
+                16,
+                NdLayout.pagePad,
+                24,
+              ),
               children: [
                 Text(
                   S.devicesTitle,
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                const SizedBox(height: NdLayout.gapSm),
+                Text(
                   S.devicesSubtitle,
-                  style: TextStyle(color: NightDriveColors.textSecondary),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: NdLayout.gapXl),
                 for (final Device d in devices)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: NdLayout.gapMd),
                     child: _DeviceCard(
                       device: d,
                       onTap: () async {
@@ -65,21 +72,22 @@ class _DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selected = device.isPrimary && !device.isShared;
+    final borderColor = selected
+        ? NightDriveColors.cyan.withValues(alpha: 0.85)
+        : NightDriveColors.stroke;
+
     return Material(
       color: NightDriveColors.graphiteCard,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(NdLayout.radiusMd),
       child: InkWell(
         onTap: device.isShared ? null : onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(NdLayout.radiusMd),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 14, 16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: device.isPrimary
-                  ? NightDriveColors.cyan.withValues(alpha: 0.45)
-                  : NightDriveColors.stroke,
-            ),
+            borderRadius: BorderRadius.circular(NdLayout.radiusMd),
+            border: Border.all(color: borderColor),
           ),
           child: Row(
             children: [
@@ -87,41 +95,52 @@ class _DeviceCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (device.isShared)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 6),
-                        child: Text(
-                          S.sharedReadonly,
-                          style: TextStyle(
-                            color: NightDriveColors.amber,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    if (device.isShared) ...[
+                      Text(
+                        S.sharedReadonly,
+                        style: GoogleFonts.archivoNarrow(
+                          color: NightDriveColors.amber,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
                         ),
                       ),
-                    Text(
-                      device.isShared
-                          ? '${device.alias} · ${S.sharedFromOnline}'
-                          : device.isPrimary
-                              ? '${device.alias} · ${S.devicePrimary}'
-                              : device.alias,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    if (!device.isShared) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        '${device.alias} · ${S.sharedFromOnline}',
+                        style: GoogleFonts.barlow(
+                          color: NightDriveColors.textSecondary,
+                          fontSize: 13,
+                          height: 1.3,
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        device.isPrimary
+                            ? '${device.alias} · ${S.devicePrimary}'
+                            : device.alias,
+                        style: GoogleFonts.archivoNarrow(
+                          color: NightDriveColors.textPrimary,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       Text(
                         '${device.online ? S.statusOnline : 'Offline'} · GSM ${device.gsmLevel ?? '—'}/5 · ${device.typeName ?? '—'}',
-                        style: const TextStyle(
+                        style: GoogleFonts.barlow(
                           color: NightDriveColors.textSecondary,
                           fontSize: 13,
+                          height: 1.3,
                         ),
                       ),
                     ],
                   ],
                 ),
               ),
-              if (device.isPrimary)
-                const Icon(Icons.check, color: NightDriveColors.cyan),
+              if (selected)
+                const Icon(Icons.check, color: NightDriveColors.cyan, size: 22),
             ],
           ),
         ),
