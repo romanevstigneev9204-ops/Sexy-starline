@@ -1,4 +1,9 @@
-/// Runtime credentials via `--dart-define` / env. Never hardcode secrets.
+/// Compile-time credentials via `--dart-define` only.
+///
+/// Uses [String.fromEnvironment] / [bool.fromEnvironment] — never
+/// `fromString`, never hardcoded AppId/Secret, never committed `.env` values.
+/// Flutter does **not** auto-load `.env`; pass defines at `flutter run` /
+/// `flutter build` (or CI). Empty defaults → [useMock] demo path.
 class Env {
   const Env._();
 
