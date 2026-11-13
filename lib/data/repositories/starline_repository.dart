@@ -7,8 +7,10 @@ import '../../domain/entities/command.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_state.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/obd_params.dart';
 import '../../domain/entities/session.dart';
 import '../../domain/entities/sim_balance.dart';
+import '../../domain/entities/track.dart';
 import '../local/app_database.dart';
 import '../local/secure_session_store.dart';
 import '../remote/starline_api_client.dart';
@@ -32,7 +34,17 @@ class StarlineRepository {
   List<Device> _cachedDevices = const [];
   List<VehicleEvent> _cachedEvents = const [];
   String? _cachedEventsDeviceId;
+  ObdParams? _cachedObd;
+  TrackPeriod? _cachedTracks;
+  DateTime? _lastWaysFetchAt;
   bool rateLimited = false;
+  bool lastWaysThrottled = false;
+
+  /// OBD is refreshed rarely (HA default ~3h) — on-demand + cache.
+  static const obdStaleAfter = Duration(hours: 3);
+
+  /// StarLine: ways ≤24h total more often than once / 10 min per device.
+  static const waysMinInterval = Duration(minutes: 10);
 
   bool get useMock => _api.useMock;
 
@@ -70,6 +82,9 @@ class StarlineRepository {
     _cachedDevices = const [];
     _cachedEvents = const [];
     _cachedEventsDeviceId = null;
+    _cachedObd = null;
+    _cachedTracks = null;
+    _lastWaysFetchAt = null;
     rateLimited = false;
   }
 
@@ -199,6 +214,104 @@ class StarlineRepository {
       rethrow;
     }
   }
+
+  ObdParams? get cachedObd => _cachedObd;
+
+  Future<ObdParams?> obdParams(
+    String deviceId, {
+    bool force = false,
+    Duration staleAfter = obdStaleAfter,
+  }) async {
+    final device = _deviceById(deviceId);
+    if (device != null && !device.supportsObd) {
+      return null;
+    }
+    if (!force &&
+        _cachedObd != null &&
+        _cachedObd!.deviceId == deviceId &&
+        _cachedObd!.fetchedAt != null &&
+        DateTime.now().difference(_cachedObd!.fetchedAt!) < staleAfter) {
+      return _cachedObd;
+    }
+    try {
+      final obd = await _api.fetchObdParams(deviceId);
+      _cachedObd = obd;
+      rateLimited = false;
+      return obd;
+    } on StarlineApiException catch (e) {
+      if (e.code == 'obd_unsupported') return null;
+      if (e.isRateLimited) {
+        rateLimited = true;
+        if (_cachedObd != null && _cachedObd!.deviceId == deviceId) {
+          return _cachedObd;
+        }
+      }
+      rethrow;
+    }
+  }
+
+  TrackPeriod? get cachedTracks => _cachedTracks;
+
+  Future<TrackPeriod> tracks(
+    String deviceId, {
+    DateTime? begin,
+    DateTime? end,
+    bool force = false,
+  }) async {
+    final now = DateTime.now();
+    final periodBegin =
+        begin ?? DateTime(now.year, now.month, now.day);
+    final periodEnd = end ?? now;
+    lastWaysThrottled = false;
+
+    if (!force &&
+        _cachedTracks != null &&
+        _cachedTracks!.deviceId == deviceId &&
+        _sameDay(_cachedTracks!.begin, periodBegin)) {
+      return _cachedTracks!;
+    }
+
+    // StarLine: ways total ≤24h not more often than once / 10 min per device.
+    if (force &&
+        _lastWaysFetchAt != null &&
+        now.difference(_lastWaysFetchAt!) < waysMinInterval &&
+        _cachedTracks != null &&
+        _cachedTracks!.deviceId == deviceId) {
+      lastWaysThrottled = true;
+      return _cachedTracks!;
+    }
+
+    try {
+      final period = await _api.fetchWays(
+        deviceId,
+        begin: periodBegin,
+        end: periodEnd,
+      );
+      _cachedTracks = period;
+      _lastWaysFetchAt = now;
+      rateLimited = false;
+      lastWaysThrottled = false;
+      return period;
+    } on StarlineApiException catch (e) {
+      if (e.isRateLimited) {
+        rateLimited = true;
+        if (_cachedTracks != null && _cachedTracks!.deviceId == deviceId) {
+          return _cachedTracks!;
+        }
+      }
+      rethrow;
+    }
+  }
+
+  Device? _deviceById(String id) {
+    for (final d in _cachedDevices) {
+      if (d.id == id) return d;
+    }
+    return null;
+  }
+
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   Future<ApiBudget> budget() async {
     final count = await _db.todayRequestCount();

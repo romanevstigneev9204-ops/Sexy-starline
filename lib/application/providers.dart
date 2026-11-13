@@ -12,6 +12,8 @@ import '../domain/entities/session.dart';
 import 'auth/auth_controller.dart';
 import 'events/events_controller.dart';
 import 'home/home_controller.dart';
+import 'obd/obd_controller.dart';
+import 'tracks/tracks_controller.dart';
 
 final envDemoProvider = Provider<bool>((ref) => Env.useMock);
 
@@ -61,6 +63,16 @@ final homeControllerProvider =
 final eventsControllerProvider =
     StateNotifierProvider<EventsController, EventsState>((ref) {
   return EventsController(ref.watch(repositoryProvider));
+});
+
+final tracksControllerProvider =
+    StateNotifierProvider<TracksController, TracksState>((ref) {
+  return TracksController(ref.watch(repositoryProvider));
+});
+
+final obdControllerProvider =
+    StateNotifierProvider<ObdController, ObdState>((ref) {
+  return ObdController(ref.watch(repositoryProvider));
 });
 
 final devicesProvider = FutureProvider<List<Device>>((ref) async {

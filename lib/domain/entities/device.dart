@@ -36,6 +36,13 @@ class Device extends Equatable {
     return pool.contains(command.toLowerCase());
   }
 
+  /// OBD fuel/mileage/errors — gated by device `functions` (`obd_params`).
+  bool get supportsObd => supports('obd_params');
+
+  /// GPS tracks/ways — `tracking` preferred; `position` alone is last-point only.
+  bool get supportsTracks =>
+      supports('tracking') || supports('ways') || supports('position');
+
   Device copyWith({
     String? id,
     String? alias,

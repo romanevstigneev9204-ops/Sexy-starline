@@ -4,27 +4,65 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../application/home/home_controller.dart';
+import '../../../application/obd/obd_controller.dart';
 import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/layout.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  String? _obdLoadedFor;
 
   String _simSubtitle(HomeState home, bool demo) {
     final balance = home.state?.simBalance ?? home.device?.simBalance;
     if (balance == null || !balance.hasValue) {
-      return demo ? '${S.simBalanceEmpty} · ${S.simBalanceDemoHint}' : S.simBalanceEmpty;
+      return demo
+          ? '${S.simBalanceEmpty} · ${S.simBalanceDemoHint}'
+          : S.simBalanceEmpty;
     }
     final base = balance.labelRu;
     return demo ? '$base · ${S.simBalanceDemoHint}' : base;
   }
 
+  String _obdSubtitle(ObdState obd, bool demo, bool supports) {
+    if (!supports) return S.obdUnsupported;
+    if (obd.unsupported) return S.obdUnsupported;
+    if (obd.loading && obd.params == null) return '…';
+    if (obd.error != null && obd.params == null) return obd.error!;
+    final params = obd.params;
+    if (params == null || !params.hasAny) {
+      return demo ? '${S.obdEmpty} · ${S.obdDemoHint}' : S.obdEmpty;
+    }
+    final base = params.summaryLabelRu;
+    return demo ? '$base · ${S.obdDemoHint}' : base;
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final home = ref.watch(homeControllerProvider);
     final budget = ref.watch(budgetProvider);
+    final obd = ref.watch(obdControllerProvider);
+    final demo = ref.watch(envDemoProvider);
+    final device = home.device;
+    final deviceId = device?.id;
+    final supportsObd = device?.supportsObd ?? false;
+
+    if (deviceId != null &&
+        supportsObd &&
+        _obdLoadedFor != deviceId &&
+        !obd.loading) {
+      _obdLoadedFor = deviceId;
+      Future.microtask(
+        () => ref.read(obdControllerProvider.notifier).load(deviceId),
+      );
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -60,8 +98,42 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 10),
             _SettingsTile(
               title: S.simBalance,
-              subtitle: _simSubtitle(home, ref.watch(envDemoProvider)),
+              subtitle: _simSubtitle(home, demo),
             ),
+            if (supportsObd || obd.params != null || obd.unsupported) ...[
+              const SizedBox(height: 10),
+              _SettingsTile(
+                title: S.obdTitle,
+                subtitle: _obdSubtitle(obd, demo, supportsObd),
+                trailing: supportsObd
+                    ? (obd.loading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: NightDriveColors.cyan,
+                            ),
+                          )
+                        : IconButton(
+                            tooltip: S.obdRefresh,
+                            onPressed: deviceId == null
+                                ? null
+                                : () async {
+                                    await ref
+                                        .read(obdControllerProvider.notifier)
+                                        .load(deviceId, force: true);
+                                    ref.invalidate(budgetProvider);
+                                  },
+                            icon: const Icon(
+                              Icons.refresh,
+                              color: NightDriveColors.cyan,
+                              size: 20,
+                            ),
+                          ))
+                    : null,
+              ),
+            ],
             const SizedBox(height: 10),
             _SettingsTile(
               title: S.devices,
@@ -91,11 +163,13 @@ class _SettingsTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.onTap,
+    this.trailing,
   });
 
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -112,26 +186,37 @@ class _SettingsTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(NdLayout.radiusMd),
             border: Border.all(color: NightDriveColors.stroke),
           ),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: GoogleFonts.archivoNarrow(
-                  color: NightDriveColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 17,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.archivoNarrow(
+                        color: NightDriveColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 17,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.barlow(
+                        color: NightDriveColors.textSecondary,
+                        fontSize: 13,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                subtitle,
-                style: GoogleFonts.barlow(
-                  color: NightDriveColors.textSecondary,
-                  fontSize: 13,
-                  height: 1.35,
-                ),
-              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing!,
+              ],
             ],
           ),
         ),
