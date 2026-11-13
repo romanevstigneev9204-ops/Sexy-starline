@@ -20,25 +20,43 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _pulse;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _pulse = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
-    Future.microtask(
-      () => ref.read(homeControllerProvider.notifier).bootstrap(),
-    );
+    Future.microtask(() async {
+      await ref.read(homeControllerProvider.notifier).bootstrap();
+      ref.read(homeControllerProvider.notifier).setForeground(true);
+      ref.invalidate(budgetProvider);
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pulse.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final home = ref.read(homeControllerProvider.notifier);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        home.setForeground(true);
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        home.setForeground(false);
+    }
   }
 
   String _freshness(DateTime? updatedAt) {
@@ -92,8 +110,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       body: SafeArea(
         child: RefreshIndicator(
           color: NightDriveColors.cyan,
-          onRefresh: () =>
-              ref.read(homeControllerProvider.notifier).refresh(force: true),
+          onRefresh: () async {
+            await ref
+                .read(homeControllerProvider.notifier)
+                .refresh(force: true);
+            ref.invalidate(budgetProvider);
+          },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -110,9 +132,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          offline
-                              ? S.noLink
-                              : _freshness(state?.updatedAt),
+                          offline ? S.noLink : _freshness(state?.updatedAt),
                           style: TextStyle(
                             color: offline
                                 ? NightDriveColors.danger
@@ -163,6 +183,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ],
               ),
+              if (home.budgetNearLimit) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: NightDriveColors.graphiteCard,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: NightDriveColors.amber.withValues(alpha: 0.55),
+                    ),
+                  ),
+                  child: const Text(
+                    S.budgetNearBanner,
+                    style: TextStyle(
+                      color: NightDriveColors.amber,
+                      fontSize: 13,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
               if (home.error != null && !offline) ...[
                 const SizedBox(height: 12),
                 Text(
@@ -279,10 +321,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 20),
               budget.when(
                 data: (b) => Text(
-                  '${S.apiBudget}: ~${b.requestCount} req сегодня',
+                  '${S.budgetHomeLabel} · ~${b.requestCount} req сегодня',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: NightDriveColors.textMuted,
+                  style: TextStyle(
+                    color: b.isNearLimit
+                        ? NightDriveColors.amber
+                        : NightDriveColors.textMuted,
                     fontSize: 12,
                   ),
                 ),

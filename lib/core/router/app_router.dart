@@ -30,14 +30,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (status == AuthStatus.unknown) {
         return loc == '/splash' ? null : '/splash';
       }
-      if (status == AuthStatus.unauthenticated ||
-          status == AuthStatus.needsExtra) {
+      if (status == AuthStatus.unauthenticated) {
         if (loc == '/login' || loc == '/captcha') return null;
         return '/login';
       }
+      if (status == AuthStatus.needsExtra) {
+        if (loc == '/captcha') return null;
+        return '/captcha';
+      }
       // authenticated
       if (loc == '/splash' || loc == '/login' || loc == '/captcha') {
-        return '/home';
+        return '/devices';
       }
       return null;
     },
