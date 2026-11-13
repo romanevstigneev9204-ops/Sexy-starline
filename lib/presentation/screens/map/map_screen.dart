@@ -12,6 +12,7 @@ import '../../../core/theme/colors.dart';
 import '../../../core/theme/layout.dart';
 import '../../../domain/entities/track.dart';
 import '../../widgets/rate_limit_view.dart';
+import 'geofence_panel.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -23,6 +24,7 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   bool _bootstrapped = false;
   String? _tracksLoadedFor;
+  String? _geofencesLoadedFor;
   final MapController _mapController = MapController();
 
   @override
@@ -37,6 +39,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           force: force,
         );
     ref.invalidate(budgetProvider);
+  }
+
+  Future<void> _loadGeofences(String deviceId) async {
+    await ref.read(geofencesControllerProvider.notifier).load(deviceId);
   }
 
   void _fitTrack(GpsTrack track) {
@@ -71,6 +77,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Widget build(BuildContext context) {
     final home = ref.watch(homeControllerProvider);
     final tracksState = ref.watch(tracksControllerProvider);
+    final geoState = ref.watch(geofencesControllerProvider);
+
+    ref.listen(geofencesControllerProvider, (prev, next) {
+      final alert = next.lastAlert;
+      if (alert == null) return;
+      if (prev?.lastAlert?.id == alert.id) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(alert.bodyRu),
+          backgroundColor: NightDriveColors.graphiteElevated,
+        ),
+      );
+      ref.read(geofencesControllerProvider.notifier).clearLastAlert();
+    });
 
     if (!_bootstrapped && home.device == null && !home.loading) {
       _bootstrapped = true;
@@ -87,6 +107,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         !tracksState.loading) {
       _tracksLoadedFor = deviceId;
       Future.microtask(() => _loadTracks(deviceId));
+    }
+    if (deviceId != null &&
+        _geofencesLoadedFor != deviceId &&
+        !geoState.loading) {
+      _geofencesLoadedFor = deviceId;
+      Future.microtask(() => _loadGeofences(deviceId));
     }
 
     if (home.rateLimited || tracksState.rateLimited) {
@@ -128,6 +154,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       }
     }
 
+    final circles = <CircleMarker>[];
+    if (geoState.overlayVisible) {
+      for (final fence in geoState.fences) {
+        if (deviceId != null && fence.deviceId != deviceId) continue;
+        if (!fence.enabled) continue;
+        circles.add(
+          CircleMarker(
+            point: LatLng(fence.latitude, fence.longitude),
+            radius: fence.radiusMeters,
+            useRadiusInMeter: true,
+            color: NightDriveColors.amber.withValues(alpha: 0.12),
+            borderColor: NightDriveColors.amber.withValues(alpha: 0.85),
+            borderStrokeWidth: 2,
+          ),
+        );
+      }
+    }
+
     return Scaffold(
       body: Column(
         children: [
@@ -149,6 +193,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       subdomains: const ['a', 'b', 'c', 'd'],
                       userAgentPackageName: 'ru.sexystarline.app',
                     ),
+                    if (circles.isNotEmpty) CircleLayer(circles: circles),
                     if (polylines.isNotEmpty) PolylineLayer(polylines: polylines),
                     MarkerLayer(
                       markers: [
@@ -243,67 +288,82 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ],
             ),
           ),
-          Container(
-            width: double.infinity,
-            color: NightDriveColors.graphite,
-            padding: const EdgeInsets.fromLTRB(
-              NdLayout.pagePad,
-              16,
-              NdLayout.pagePad,
-              12,
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.48,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  S.lastPoint,
-                  style: GoogleFonts.archivoNarrow(
-                    color: NightDriveColors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                  ),
+            child: Container(
+              width: double.infinity,
+              color: NightDriveColors.graphite,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  NdLayout.pagePad,
+                  16,
+                  NdLayout.pagePad,
+                  12,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  hasFix
-                      ? '$address · обновлено $mins мин назад'
-                      : 'Нет координат · потяните обновление',
-                  style: GoogleFonts.barlow(
-                    color: NightDriveColors.textSecondary,
-                    fontSize: 13,
-                    height: 1.35,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      S.lastPoint,
+                      style: GoogleFonts.archivoNarrow(
+                        color: NightDriveColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      hasFix
+                          ? '$address · обновлено $mins мин назад'
+                          : 'Нет координат · потяните обновление',
+                      style: GoogleFonts.barlow(
+                        color: NightDriveColors.textSecondary,
+                        fontSize: 13,
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: home.loading
+                          ? null
+                          : () => ref
+                              .read(homeControllerProvider.notifier)
+                              .refresh(force: true),
+                      child: const Text(S.refreshPosition),
+                    ),
+                    if (canTracks && deviceId != null) ...[
+                      const SizedBox(height: 16),
+                      _TracksPanel(
+                        tracksState: tracksState,
+                        onToggleOverlay: () => ref
+                            .read(tracksControllerProvider.notifier)
+                            .setOverlayVisible(!tracksState.overlayVisible),
+                        onRefresh: tracksState.loading
+                            ? null
+                            : () => _loadTracks(deviceId, force: true),
+                        onSelect: (track) {
+                          ref
+                              .read(tracksControllerProvider.notifier)
+                              .selectTrack(track.id);
+                          if (tracksState.overlayVisible) {
+                            _fitTrack(track);
+                          }
+                        },
+                      ),
+                    ],
+                    if (deviceId != null) ...[
+                      const SizedBox(height: 16),
+                      GeofencePanel(
+                        deviceId: deviceId,
+                        carLat: car.latitude,
+                        carLon: car.longitude,
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: home.loading
-                      ? null
-                      : () => ref
-                          .read(homeControllerProvider.notifier)
-                          .refresh(force: true),
-                  child: const Text(S.refreshPosition),
-                ),
-                if (canTracks && deviceId != null) ...[
-                  const SizedBox(height: 16),
-                  _TracksPanel(
-                    tracksState: tracksState,
-                    onToggleOverlay: () => ref
-                        .read(tracksControllerProvider.notifier)
-                        .setOverlayVisible(!tracksState.overlayVisible),
-                    onRefresh: tracksState.loading
-                        ? null
-                        : () => _loadTracks(deviceId, force: true),
-                    onSelect: (track) {
-                      ref
-                          .read(tracksControllerProvider.notifier)
-                          .selectTrack(track.id);
-                      if (tracksState.overlayVisible) {
-                        _fitTrack(track);
-                      }
-                    },
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         ],

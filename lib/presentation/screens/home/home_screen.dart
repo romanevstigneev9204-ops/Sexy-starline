@@ -77,6 +77,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ctrl.canSend(DeviceCommand.valetOff);
   }
 
+  bool _hasComfort(HomeController ctrl) {
+    return ctrl.canSend(DeviceCommand.webastoOn) ||
+        ctrl.canSend(DeviceCommand.webastoOff) ||
+        ctrl.canSend(DeviceCommand.auxOn) ||
+        ctrl.canSend(DeviceCommand.auxOff);
+  }
+
   Future<void> _onCommand(DeviceCommand cmd) async {
     final home = ref.read(homeControllerProvider.notifier);
     if (cmd == DeviceCommand.disarm || cmd == DeviceCommand.quietDisarm) {
@@ -91,6 +98,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     } else if (cmd == DeviceCommand.valetOn) {
       final ok = await showValetConfirm(context);
       if (!ok) return;
+    } else if (cmd == DeviceCommand.webastoOn) {
+      final ok = await showWebastoConfirm(context);
+      if (!ok) return;
+    } else if (cmd == DeviceCommand.auxOn) {
+      final ok = await showAuxConfirm(context);
+      if (!ok) return;
     }
     final success = await home.sendCommand(cmd);
     if (!mounted) return;
@@ -103,6 +116,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final home = ref.watch(homeControllerProvider);
     final budget = ref.watch(budgetProvider);
+
+    ref.listen(geofencesControllerProvider, (prev, next) {
+      final alert = next.lastAlert;
+      if (alert == null) return;
+      if (prev?.lastAlert?.id == alert.id) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(alert.bodyRu),
+          backgroundColor: NightDriveColors.graphiteElevated,
+        ),
+      );
+      ref.read(geofencesControllerProvider.notifier).clearLastAlert();
+    });
 
     if (home.rateLimited) {
       return RateLimitView(
@@ -436,6 +462,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               ),
                       child: Text(
                         (state?.valet ?? false) ? S.valetOff : S.valetOn,
+                      ),
+                    ),
+                  ],
+                ],
+                if (_hasComfort(ctrl)) ...[
+                  const SizedBox(height: NdLayout.gapLg),
+                  Text(
+                    S.comfortCommands,
+                    style: GoogleFonts.archivoNarrow(
+                      color: NightDriveColors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                  if (state?.webasto == true || state?.auxOn == true) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      [
+                        if (state?.webasto == true) S.webastoActive,
+                        if (state?.auxOn == true) S.auxActive,
+                      ].join(' · '),
+                      style: GoogleFonts.barlow(
+                        color: NightDriveColors.amber,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                  if (ctrl.canSend(DeviceCommand.webastoOn) ||
+                      ctrl.canSend(DeviceCommand.webastoOff)) ...[
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      onPressed: home.commandBusy
+                          ? null
+                          : () => _onCommand(
+                                (state?.webasto ?? false)
+                                    ? DeviceCommand.webastoOff
+                                    : DeviceCommand.webastoOn,
+                              ),
+                      child: Text(
+                        (state?.webasto ?? false) ? S.webastoOff : S.webastoOn,
+                      ),
+                    ),
+                  ],
+                  if (ctrl.canSend(DeviceCommand.auxOn) ||
+                      ctrl.canSend(DeviceCommand.auxOff)) ...[
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      onPressed: home.commandBusy
+                          ? null
+                          : () => _onCommand(
+                                (state?.auxOn ?? false)
+                                    ? DeviceCommand.auxOff
+                                    : DeviceCommand.auxOn,
+                              ),
+                      child: Text(
+                        (state?.auxOn ?? false) ? S.auxOff : S.auxOn,
                       ),
                     ),
                   ],

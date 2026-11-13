@@ -1487,6 +1487,629 @@ class MetaTableCompanion extends UpdateCompanion<MetaTableData> {
   }
 }
 
+class $GeofencesTableTable extends GeofencesTable
+    with TableInfo<$GeofencesTableTable, GeofencesTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeofencesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+    'device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _radiusMetersMeta = const VerificationMeta(
+    'radiusMeters',
+  );
+  @override
+  late final GeneratedColumn<double> radiusMeters = GeneratedColumn<double>(
+    'radius_meters',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta(
+    'enabled',
+  );
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _alertOnEnterMeta = const VerificationMeta(
+    'alertOnEnter',
+  );
+  @override
+  late final GeneratedColumn<bool> alertOnEnter = GeneratedColumn<bool>(
+    'alert_on_enter',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("alert_on_enter" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _alertOnExitMeta = const VerificationMeta(
+    'alertOnExit',
+  );
+  @override
+  late final GeneratedColumn<bool> alertOnExit = GeneratedColumn<bool>(
+    'alert_on_exit',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("alert_on_exit" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _lastSideMeta = const VerificationMeta(
+    'lastSide',
+  );
+  @override
+  late final GeneratedColumn<String> lastSide = GeneratedColumn<String>(
+    'last_side',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('unknown'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    deviceId,
+    name,
+    latitude,
+    longitude,
+    radiusMeters,
+    enabled,
+    alertOnEnter,
+    alertOnExit,
+    lastSide,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geofences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GeofencesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deviceIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('radius_meters')) {
+      context.handle(
+        _radiusMetersMeta,
+        radiusMeters.isAcceptableOrUnknown(
+          data['radius_meters']!,
+          _radiusMetersMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_radiusMetersMeta);
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(
+        _enabledMeta,
+        enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
+      );
+    }
+    if (data.containsKey('alert_on_enter')) {
+      context.handle(
+        _alertOnEnterMeta,
+        alertOnEnter.isAcceptableOrUnknown(
+          data['alert_on_enter']!,
+          _alertOnEnterMeta,
+        ),
+      );
+    }
+    if (data.containsKey('alert_on_exit')) {
+      context.handle(
+        _alertOnExitMeta,
+        alertOnExit.isAcceptableOrUnknown(
+          data['alert_on_exit']!,
+          _alertOnExitMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_side')) {
+      context.handle(
+        _lastSideMeta,
+        lastSide.isAcceptableOrUnknown(data['last_side']!, _lastSideMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GeofencesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeofencesTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}device_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      )!,
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      )!,
+      radiusMeters: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}radius_meters'],
+      )!,
+      enabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enabled'],
+      )!,
+      alertOnEnter: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}alert_on_enter'],
+      )!,
+      alertOnExit: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}alert_on_exit'],
+      )!,
+      lastSide: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_side'],
+      )!,
+    );
+  }
+
+  @override
+  $GeofencesTableTable createAlias(String alias) {
+    return $GeofencesTableTable(attachedDatabase, alias);
+  }
+}
+
+class GeofencesTableData extends DataClass
+    implements Insertable<GeofencesTableData> {
+  final String id;
+  final String deviceId;
+  final String name;
+  final double latitude;
+  final double longitude;
+  final double radiusMeters;
+  final bool enabled;
+  final bool alertOnEnter;
+  final bool alertOnExit;
+  final String lastSide;
+  const GeofencesTableData({
+    required this.id,
+    required this.deviceId,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    required this.radiusMeters,
+    required this.enabled,
+    required this.alertOnEnter,
+    required this.alertOnExit,
+    required this.lastSide,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['device_id'] = Variable<String>(deviceId);
+    map['name'] = Variable<String>(name);
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    map['radius_meters'] = Variable<double>(radiusMeters);
+    map['enabled'] = Variable<bool>(enabled);
+    map['alert_on_enter'] = Variable<bool>(alertOnEnter);
+    map['alert_on_exit'] = Variable<bool>(alertOnExit);
+    map['last_side'] = Variable<String>(lastSide);
+    return map;
+  }
+
+  GeofencesTableCompanion toCompanion(bool nullToAbsent) {
+    return GeofencesTableCompanion(
+      id: Value(id),
+      deviceId: Value(deviceId),
+      name: Value(name),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      radiusMeters: Value(radiusMeters),
+      enabled: Value(enabled),
+      alertOnEnter: Value(alertOnEnter),
+      alertOnExit: Value(alertOnExit),
+      lastSide: Value(lastSide),
+    );
+  }
+
+  factory GeofencesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeofencesTableData(
+      id: serializer.fromJson<String>(json['id']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+      name: serializer.fromJson<String>(json['name']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      radiusMeters: serializer.fromJson<double>(json['radiusMeters']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+      alertOnEnter: serializer.fromJson<bool>(json['alertOnEnter']),
+      alertOnExit: serializer.fromJson<bool>(json['alertOnExit']),
+      lastSide: serializer.fromJson<String>(json['lastSide']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'deviceId': serializer.toJson<String>(deviceId),
+      'name': serializer.toJson<String>(name),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'radiusMeters': serializer.toJson<double>(radiusMeters),
+      'enabled': serializer.toJson<bool>(enabled),
+      'alertOnEnter': serializer.toJson<bool>(alertOnEnter),
+      'alertOnExit': serializer.toJson<bool>(alertOnExit),
+      'lastSide': serializer.toJson<String>(lastSide),
+    };
+  }
+
+  GeofencesTableData copyWith({
+    String? id,
+    String? deviceId,
+    String? name,
+    double? latitude,
+    double? longitude,
+    double? radiusMeters,
+    bool? enabled,
+    bool? alertOnEnter,
+    bool? alertOnExit,
+    String? lastSide,
+  }) => GeofencesTableData(
+    id: id ?? this.id,
+    deviceId: deviceId ?? this.deviceId,
+    name: name ?? this.name,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    radiusMeters: radiusMeters ?? this.radiusMeters,
+    enabled: enabled ?? this.enabled,
+    alertOnEnter: alertOnEnter ?? this.alertOnEnter,
+    alertOnExit: alertOnExit ?? this.alertOnExit,
+    lastSide: lastSide ?? this.lastSide,
+  );
+  GeofencesTableData copyWithCompanion(GeofencesTableCompanion data) {
+    return GeofencesTableData(
+      id: data.id.present ? data.id.value : this.id,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+      name: data.name.present ? data.name.value : this.name,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      radiusMeters: data.radiusMeters.present
+          ? data.radiusMeters.value
+          : this.radiusMeters,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      alertOnEnter: data.alertOnEnter.present
+          ? data.alertOnEnter.value
+          : this.alertOnEnter,
+      alertOnExit: data.alertOnExit.present
+          ? data.alertOnExit.value
+          : this.alertOnExit,
+      lastSide: data.lastSide.present ? data.lastSide.value : this.lastSide,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeofencesTableData(')
+          ..write('id: $id, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radiusMeters: $radiusMeters, ')
+          ..write('enabled: $enabled, ')
+          ..write('alertOnEnter: $alertOnEnter, ')
+          ..write('alertOnExit: $alertOnExit, ')
+          ..write('lastSide: $lastSide')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    deviceId,
+    name,
+    latitude,
+    longitude,
+    radiusMeters,
+    enabled,
+    alertOnEnter,
+    alertOnExit,
+    lastSide,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeofencesTableData &&
+          other.id == this.id &&
+          other.deviceId == this.deviceId &&
+          other.name == this.name &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.radiusMeters == this.radiusMeters &&
+          other.enabled == this.enabled &&
+          other.alertOnEnter == this.alertOnEnter &&
+          other.alertOnExit == this.alertOnExit &&
+          other.lastSide == this.lastSide);
+}
+
+class GeofencesTableCompanion extends UpdateCompanion<GeofencesTableData> {
+  final Value<String> id;
+  final Value<String> deviceId;
+  final Value<String> name;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<double> radiusMeters;
+  final Value<bool> enabled;
+  final Value<bool> alertOnEnter;
+  final Value<bool> alertOnExit;
+  final Value<String> lastSide;
+  final Value<int> rowid;
+  const GeofencesTableCompanion({
+    this.id = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.radiusMeters = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.alertOnEnter = const Value.absent(),
+    this.alertOnExit = const Value.absent(),
+    this.lastSide = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GeofencesTableCompanion.insert({
+    required String id,
+    required String deviceId,
+    required String name,
+    required double latitude,
+    required double longitude,
+    required double radiusMeters,
+    this.enabled = const Value.absent(),
+    this.alertOnEnter = const Value.absent(),
+    this.alertOnExit = const Value.absent(),
+    this.lastSide = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       deviceId = Value(deviceId),
+       name = Value(name),
+       latitude = Value(latitude),
+       longitude = Value(longitude),
+       radiusMeters = Value(radiusMeters);
+  static Insertable<GeofencesTableData> custom({
+    Expression<String>? id,
+    Expression<String>? deviceId,
+    Expression<String>? name,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<double>? radiusMeters,
+    Expression<bool>? enabled,
+    Expression<bool>? alertOnEnter,
+    Expression<bool>? alertOnExit,
+    Expression<String>? lastSide,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (deviceId != null) 'device_id': deviceId,
+      if (name != null) 'name': name,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (radiusMeters != null) 'radius_meters': radiusMeters,
+      if (enabled != null) 'enabled': enabled,
+      if (alertOnEnter != null) 'alert_on_enter': alertOnEnter,
+      if (alertOnExit != null) 'alert_on_exit': alertOnExit,
+      if (lastSide != null) 'last_side': lastSide,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GeofencesTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? deviceId,
+    Value<String>? name,
+    Value<double>? latitude,
+    Value<double>? longitude,
+    Value<double>? radiusMeters,
+    Value<bool>? enabled,
+    Value<bool>? alertOnEnter,
+    Value<bool>? alertOnExit,
+    Value<String>? lastSide,
+    Value<int>? rowid,
+  }) {
+    return GeofencesTableCompanion(
+      id: id ?? this.id,
+      deviceId: deviceId ?? this.deviceId,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      radiusMeters: radiusMeters ?? this.radiusMeters,
+      enabled: enabled ?? this.enabled,
+      alertOnEnter: alertOnEnter ?? this.alertOnEnter,
+      alertOnExit: alertOnExit ?? this.alertOnExit,
+      lastSide: lastSide ?? this.lastSide,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (radiusMeters.present) {
+      map['radius_meters'] = Variable<double>(radiusMeters.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (alertOnEnter.present) {
+      map['alert_on_enter'] = Variable<bool>(alertOnEnter.value);
+    }
+    if (alertOnExit.present) {
+      map['alert_on_exit'] = Variable<bool>(alertOnExit.value);
+    }
+    if (lastSide.present) {
+      map['last_side'] = Variable<String>(lastSide.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeofencesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radiusMeters: $radiusMeters, ')
+          ..write('enabled: $enabled, ')
+          ..write('alertOnEnter: $alertOnEnter, ')
+          ..write('alertOnExit: $alertOnExit, ')
+          ..write('lastSide: $lastSide, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1496,6 +2119,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $EventsTableTable eventsTable = $EventsTableTable(this);
   late final $ApiUsageTableTable apiUsageTable = $ApiUsageTableTable(this);
   late final $MetaTableTable metaTable = $MetaTableTable(this);
+  late final $GeofencesTableTable geofencesTable = $GeofencesTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1506,6 +2130,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     eventsTable,
     apiUsageTable,
     metaTable,
+    geofencesTable,
   ];
 }
 
@@ -2397,6 +3022,313 @@ typedef $$MetaTableTableProcessedTableManager =
       MetaTableData,
       PrefetchHooks Function()
     >;
+typedef $$GeofencesTableTableCreateCompanionBuilder =
+    GeofencesTableCompanion Function({
+      required String id,
+      required String deviceId,
+      required String name,
+      required double latitude,
+      required double longitude,
+      required double radiusMeters,
+      Value<bool> enabled,
+      Value<bool> alertOnEnter,
+      Value<bool> alertOnExit,
+      Value<String> lastSide,
+      Value<int> rowid,
+    });
+typedef $$GeofencesTableTableUpdateCompanionBuilder =
+    GeofencesTableCompanion Function({
+      Value<String> id,
+      Value<String> deviceId,
+      Value<String> name,
+      Value<double> latitude,
+      Value<double> longitude,
+      Value<double> radiusMeters,
+      Value<bool> enabled,
+      Value<bool> alertOnEnter,
+      Value<bool> alertOnExit,
+      Value<String> lastSide,
+      Value<int> rowid,
+    });
+
+class $$GeofencesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $GeofencesTableTable> {
+  $$GeofencesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get radiusMeters => $composableBuilder(
+    column: $table.radiusMeters,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get alertOnEnter => $composableBuilder(
+    column: $table.alertOnEnter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get alertOnExit => $composableBuilder(
+    column: $table.alertOnExit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastSide => $composableBuilder(
+    column: $table.lastSide,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GeofencesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeofencesTableTable> {
+  $$GeofencesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get radiusMeters => $composableBuilder(
+    column: $table.radiusMeters,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get alertOnEnter => $composableBuilder(
+    column: $table.alertOnEnter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get alertOnExit => $composableBuilder(
+    column: $table.alertOnExit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastSide => $composableBuilder(
+    column: $table.lastSide,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GeofencesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeofencesTableTable> {
+  $$GeofencesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<double> get radiusMeters => $composableBuilder(
+    column: $table.radiusMeters,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  GeneratedColumn<bool> get alertOnEnter => $composableBuilder(
+    column: $table.alertOnEnter,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get alertOnExit => $composableBuilder(
+    column: $table.alertOnExit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastSide =>
+      $composableBuilder(column: $table.lastSide, builder: (column) => column);
+}
+
+class $$GeofencesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GeofencesTableTable,
+          GeofencesTableData,
+          $$GeofencesTableTableFilterComposer,
+          $$GeofencesTableTableOrderingComposer,
+          $$GeofencesTableTableAnnotationComposer,
+          $$GeofencesTableTableCreateCompanionBuilder,
+          $$GeofencesTableTableUpdateCompanionBuilder,
+          (
+            GeofencesTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $GeofencesTableTable,
+              GeofencesTableData
+            >,
+          ),
+          GeofencesTableData,
+          PrefetchHooks Function()
+        > {
+  $$GeofencesTableTableTableManager(
+    _$AppDatabase db,
+    $GeofencesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeofencesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeofencesTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeofencesTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> deviceId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<double> latitude = const Value.absent(),
+                Value<double> longitude = const Value.absent(),
+                Value<double> radiusMeters = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> alertOnEnter = const Value.absent(),
+                Value<bool> alertOnExit = const Value.absent(),
+                Value<String> lastSide = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GeofencesTableCompanion(
+                id: id,
+                deviceId: deviceId,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radiusMeters: radiusMeters,
+                enabled: enabled,
+                alertOnEnter: alertOnEnter,
+                alertOnExit: alertOnExit,
+                lastSide: lastSide,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String deviceId,
+                required String name,
+                required double latitude,
+                required double longitude,
+                required double radiusMeters,
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> alertOnEnter = const Value.absent(),
+                Value<bool> alertOnExit = const Value.absent(),
+                Value<String> lastSide = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GeofencesTableCompanion.insert(
+                id: id,
+                deviceId: deviceId,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radiusMeters: radiusMeters,
+                enabled: enabled,
+                alertOnEnter: alertOnEnter,
+                alertOnExit: alertOnExit,
+                lastSide: lastSide,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GeofencesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GeofencesTableTable,
+      GeofencesTableData,
+      $$GeofencesTableTableFilterComposer,
+      $$GeofencesTableTableOrderingComposer,
+      $$GeofencesTableTableAnnotationComposer,
+      $$GeofencesTableTableCreateCompanionBuilder,
+      $$GeofencesTableTableUpdateCompanionBuilder,
+      (
+        GeofencesTableData,
+        BaseReferences<_$AppDatabase, $GeofencesTableTable, GeofencesTableData>,
+      ),
+      GeofencesTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2411,4 +3343,6 @@ class $AppDatabaseManager {
       $$ApiUsageTableTableTableManager(_db, _db.apiUsageTable);
   $$MetaTableTableTableManager get metaTable =>
       $$MetaTableTableTableManager(_db, _db.metaTable);
+  $$GeofencesTableTableTableManager get geofencesTable =>
+      $$GeofencesTableTableTableManager(_db, _db.geofencesTable);
 }

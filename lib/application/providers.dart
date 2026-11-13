@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/env.dart';
 import '../data/local/app_database.dart';
+import '../data/local/geofence_store.dart';
 import '../data/local/secure_session_store.dart';
 import '../data/remote/starline_api_client.dart';
 import '../data/repositories/starline_repository.dart';
@@ -11,6 +12,7 @@ import '../domain/entities/device_state.dart';
 import '../domain/entities/session.dart';
 import 'auth/auth_controller.dart';
 import 'events/events_controller.dart';
+import 'geofences/geofences_controller.dart';
 import 'home/home_controller.dart';
 import 'obd/obd_controller.dart';
 import 'tracks/tracks_controller.dart';
@@ -51,11 +53,28 @@ final sessionProvider = Provider<Session?>((ref) {
   return ref.watch(authControllerProvider).session;
 });
 
+final geofenceStoreProvider = Provider<GeofenceStore>((ref) {
+  return GeofenceStore(ref.watch(databaseProvider));
+});
+
+final geofencesControllerProvider =
+    StateNotifierProvider<GeofencesController, GeofencesState>((ref) {
+  return GeofencesController(
+    store: ref.watch(geofenceStoreProvider),
+    useMock: ref.watch(envDemoProvider) ||
+        ref.watch(repositoryProvider).useMock,
+  );
+});
+
 final homeControllerProvider =
     StateNotifierProvider<HomeController, HomeState>((ref) {
   final controller = HomeController(ref.watch(repositoryProvider));
   controller.onBudgetChanged = () {
     ref.invalidate(budgetProvider);
+  };
+  // Client geofences evaluate cached GPS — no extra StarLine requests.
+  controller.onStateUpdated = (ds) {
+    ref.read(geofencesControllerProvider.notifier).evaluate(ds);
   };
   return controller;
 });

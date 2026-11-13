@@ -390,6 +390,12 @@ class StarlineApiClient {
         DeviceCommand.valetOn => current.copyWith(valet: true, updatedAt: now),
         DeviceCommand.valetOff =>
           current.copyWith(valet: false, updatedAt: now),
+        DeviceCommand.webastoOn =>
+          current.copyWith(webasto: true, updatedAt: now),
+        DeviceCommand.webastoOff =>
+          current.copyWith(webasto: false, updatedAt: now),
+        DeviceCommand.auxOn => current.copyWith(auxOn: true, updatedAt: now),
+        DeviceCommand.auxOff => current.copyWith(auxOn: false, updatedAt: now),
       };
       _mockStates[deviceId] = next;
       return;

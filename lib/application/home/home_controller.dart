@@ -76,6 +76,11 @@ class HomeController extends StateNotifier<HomeState> {
   DateTime? _lastSuccessAt;
   bool _foreground = true;
   void Function()? onBudgetChanged;
+  void Function(DeviceState state)? onStateUpdated;
+
+  void _emitState(DeviceState? ds) {
+    if (ds != null) onStateUpdated?.call(ds);
+  }
 
   Future<void> bootstrap() async {
     state = state.copyWith(loading: true, clearError: true);
@@ -104,6 +109,7 @@ class HomeController extends StateNotifier<HomeState> {
         budgetNearLimit: budget.isNearLimit || budget.isExceeded,
         pollInterval: PollPolicy.intervalFor(budget),
       );
+      _emitState(ds);
       _restartPollTimer();
       onBudgetChanged?.call();
     } on StarlineApiException catch (e) {
@@ -113,6 +119,7 @@ class HomeController extends StateNotifier<HomeState> {
         rateLimited: e.isRateLimited || _repo.rateLimited,
         state: _repo.cachedState,
       );
+      _emitState(_repo.cachedState);
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());
     }
@@ -166,6 +173,7 @@ class HomeController extends StateNotifier<HomeState> {
         budgetNearLimit: nextBudget.isNearLimit || nextBudget.isExceeded,
         pollInterval: PollPolicy.intervalFor(nextBudget),
       );
+      _emitState(ds);
       _restartPollTimer();
       onBudgetChanged?.call();
     } on StarlineApiException catch (e) {
@@ -227,14 +235,16 @@ class HomeController extends StateNotifier<HomeState> {
       _lastSuccessAt = DateTime.now();
     }
     final budget = await _repo.budget();
+    final nextState = result.state ?? state.state;
     state = state.copyWith(
-      state: result.state ?? state.state,
+      state: nextState,
       commandBusy: false,
       error: result.error,
       rateLimited: result.rateLimited || _repo.rateLimited,
       budgetNearLimit: budget.isNearLimit || budget.isExceeded,
       pollInterval: PollPolicy.intervalFor(budget),
     );
+    _emitState(nextState);
     onBudgetChanged?.call();
     return result.ok;
   }

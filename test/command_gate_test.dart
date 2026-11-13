@@ -36,6 +36,14 @@ void main() {
         {'type': 'valet', 'valet': 0},
       );
     });
+
+    test('webasto and aux bodies', () {
+      expect(
+        DeviceCommand.webastoOn.setParamBody,
+        {'type': 'webasto', 'webasto': 1},
+      );
+      expect(DeviceCommand.auxOn.setParamBody, {'type': 'out', 'out': 1});
+    });
   });
 
   group('CommandGate', () {
@@ -166,6 +174,8 @@ void main() {
       expect(DeviceCommand.start.requiresHold, isTrue);
       expect(DeviceCommand.panic.requiresConfirm, isTrue);
       expect(DeviceCommand.valetOn.requiresConfirm, isTrue);
+      expect(DeviceCommand.webastoOn.requiresConfirm, isTrue);
+      expect(DeviceCommand.auxOn.requiresConfirm, isTrue);
       expect(DeviceCommand.horn.requiresConfirm, isFalse);
       expect(DeviceCommand.arm.requiresConfirm, isFalse);
       expect(DeviceCommand.quietArm.requiresConfirm, isFalse);

@@ -52,6 +52,13 @@ abstract final class S {
   static const valetOn = 'Сервисный режим';
   static const valetOff = 'Выйти из сервиса';
   static const valetActive = 'Сервисный режим включён';
+  static const comfortCommands = 'Комфорт';
+  static const webastoOn = 'Включить Webasto';
+  static const webastoOff = 'Выключить Webasto';
+  static const webastoActive = 'Webasto включён';
+  static const auxOn = 'Доп. канал вкл.';
+  static const auxOff = 'Доп. канал выкл.';
+  static const auxActive = 'Доп. канал включён';
   static const apiBudget = 'Бюджет API';
   static const updatedAgo = 'Обновлено';
   static const noLink = 'Нет связи с авто';
@@ -77,6 +84,14 @@ abstract final class S {
   static const valetBody =
       'Охрана и автозапуск будут ограничены. Нужно для сервиса или мойки.';
   static const valetConfirm = 'Включить сервис';
+  static const webastoTitle = 'Включить Webasto?';
+  static const webastoBody =
+      'Подогреватель салона/двигателя получит команду. Убедитесь, что это безопасно.';
+  static const webastoConfirm = 'Да, включить Webasto';
+  static const auxTitle = 'Включить доп. канал?';
+  static const auxBody =
+      'Дополнительный канал (AUX/out) переключится. Проверьте, что подключено к каналу.';
+  static const auxConfirm = 'Да, включить канал';
   static const cancel = 'Отмена';
 
   // Map
@@ -94,6 +109,26 @@ abstract final class S {
       'Запрос трека расходует бюджет API · период ≤ 24 ч';
   static const trackMileage = 'Пробег';
   static const trackDuration = 'В пути';
+
+  // Geofences (client-side)
+  static const geofencesTitle = 'Геозоны';
+  static const geofencesHint =
+      'Локальные зоны на устройстве. Алерты по позиции из опроса Home — без API геозон StarLine.';
+  static const geofencesEmpty = 'Нет геозон — добавьте вокруг текущего авто';
+  static const geofenceAdd = 'Добавить геозону';
+  static const geofenceEdit = 'Геозона';
+  static const geofenceNameHint = 'Название';
+  static const geofenceRadius = 'Радиус, м';
+  static const geofenceSave = 'Сохранить';
+  static const geofenceDelete = 'Удалить';
+  static const geofenceEnabled = 'Включена';
+  static const geofenceEnter = 'Вход';
+  static const geofenceExit = 'Выход';
+  static const geofencesHide = 'Скрыть зоны';
+  static const geofencesShow = 'Показать зоны';
+  static const geofenceAlertEnter = 'Вход в геозону';
+  static const geofenceAlertExit = 'Выход из геозоны';
+  static const geofencesDemoSeed = 'Демо: Дом и Офис около Лесной';
 
   // OBD
   static const obdTitle = 'OBD';

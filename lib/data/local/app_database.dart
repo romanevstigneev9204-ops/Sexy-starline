@@ -67,6 +67,26 @@ class MetaTable extends Table {
   Set<Column> get primaryKey => {key};
 }
 
+/// Client-side geofences — never synced to StarLine servers.
+class GeofencesTable extends Table {
+  @override
+  String get tableName => 'geofences';
+
+  TextColumn get id => text()();
+  TextColumn get deviceId => text()();
+  TextColumn get name => text()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get radiusMeters => real()();
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  BoolColumn get alertOnEnter => boolean().withDefault(const Constant(true))();
+  BoolColumn get alertOnExit => boolean().withDefault(const Constant(true))();
+  TextColumn get lastSide => text().withDefault(const Constant('unknown'))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     DevicesTable,
@@ -74,6 +94,7 @@ class MetaTable extends Table {
     EventsTable,
     ApiUsageTable,
     MetaTable,
+    GeofencesTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -81,7 +102,19 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'sexy_starline'));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) async {
+          await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(geofencesTable);
+          }
+        },
+      );
 
   Future<int> todayRequestCount() async {
     final start = DateTime(
