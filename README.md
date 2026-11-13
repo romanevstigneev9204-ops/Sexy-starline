@@ -8,7 +8,7 @@ Flutter MVP для владельца StarLine: статус охраны, ко�
 
 ## Требования
 
-- Flutter 3.35+ / Dart 3.9+
+- Flutter 3.50+ / Dart 3.10+ (CI pin: `3.50.0`)
 - iOS 13+ / Android 7+ (API 24+)
 - Опционально: Linux desktop, Chrome/web (см. ниже)
 
@@ -88,14 +88,15 @@ flutter run -d linux
 ```
 lib/
   presentation/   # экраны, виджеты, shell (bottom nav)
-  application/    # Riverpod controllers (auth, home)
-  domain/         # Device, DeviceState, Event, Command, Session
+  application/    # Riverpod controllers (auth, home) + home_widget bridge
+  domain/         # Device, DeviceState, Event, Command, Session, widget payload
   data/
     remote/       # StarlineApiClient (SLID → slnet + WebAPI)
     local/        # SecureSessionStore, Drift AppDatabase
     repositories/ # кэш + budget + rate-limit
     mock/         # демо-каталог
   core/           # theme Night Drive, router, Env, RU/EN strings (+ lib/l10n/*.arb)
+android/…/ArmStatusWidgetProvider.kt  # Night Drive home-screen widget
 ```
 
 ### Auth / API
@@ -126,10 +127,28 @@ Open API лимит: **~1000 req/user/day**. Клиент честно учит�
 | Resume приложения | Refresh, если снимок старше интервала |
 | HTTP 429 | Экран «Лимит запросов», работа с кэшем Drift/memory |
 | Счётчик | Drift `api_usage` по календарному дню; Home / Settings показывают `~N / 1000` |
+| Home-screen widget | **0** собственных запросов — только зеркало кэша Home |
 
 Целевой спокойный день (1 авто): порядка **100–300 req**. Poll только **активного** устройства.
 
 Реализация: `PollPolicy` + `HomeController` timer / lifecycle; `AppDatabase.incrementRequestCount` на каждый WebAPI/SLID вызов.
+
+### Home-screen widgets (Android)
+
+Виджет **Sexy Starline** на рабочем столе Android (Night Drive): статус охраны + CTA «Поставить / Снять / Открыть».
+
+| Что | Как |
+|-----|-----|
+| Данные | Flutter пушит снимок через [`home_widget`](https://pub.dev/packages/home_widget) после Home refresh / команды |
+| Polling | `updatePeriodMillis=0` — виджет **не** ходит в StarLine сам |
+| Действия | Deep-link `sexystarline://widget/{open\|arm\|disarm}` → открытие приложения; disarm с confirm-sheet |
+| Нативные файлы | `ArmStatusWidgetProvider.kt`, `res/layout/arm_status_widget.xml` |
+
+Добавление: долгое нажатие на рабочий стол → виджеты → Sexy Starline.
+
+#### iOS follow-up (не в этом PR)
+
+WidgetKit требует App Group + Widget Extension target в Xcode (macOS). Заготовка kind: `ArmStatusWidget` (`kIosArmStatusWidgetName`). Дальше: App Group `group.ru.sexystarline.app`, extension target, `HomeWidget.setAppGroupId`, SwiftUI timeline из UserDefaults — без отдельного poll StarLine.
 
 ### Навигация
 

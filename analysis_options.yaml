@@ -12,6 +12,8 @@ analyzer:
     - build/**
     - android/**
     - ios/**
+    - web/**
+    - linux/**
   # Flutter 3.50 marks material.dart as deprecated in favor of material_ui;
   # MVP stays on material until a dedicated migration.
   errors:

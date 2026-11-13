@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_brand">Sexy Starline</string>
+    <string name="widget_description">Статус охраны и быстрый переход к постановке / снятию</string>
+    <string name="widget_default_title">Sexy Starline</string>
+    <string name="widget_default_status">Нет данных</string>
+    <string name="widget_default_subtitle">Откройте приложение</string>
+    <string name="widget_open">Открыть</string>
+    <string name="widget_arm">Поставить</string>
+    <string name="widget_disarm">Снять</string>
+</resources>
