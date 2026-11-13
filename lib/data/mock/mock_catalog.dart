@@ -11,8 +11,8 @@ abstract final class MockCatalog {
       online: true,
       gsmLevel: 4,
       isPrimary: true,
-      functions: ['arm', 'disarm', 'start', 'stop', 'horn'],
-      controls: ['arm', 'disarm', 'start', 'stop', 'horn'],
+      functions: ['state', 'position', 'arm', 'ign', 'poke'],
+      controls: ['arm', 'ign', 'poke'],
     ),
     const Device(
       id: 'demo-skoda',
@@ -20,8 +20,8 @@ abstract final class MockCatalog {
       typeName: 'A96',
       online: true,
       gsmLevel: 3,
-      functions: ['arm', 'disarm', 'start', 'stop', 'horn'],
-      controls: ['arm', 'disarm', 'start', 'stop', 'horn'],
+      functions: ['state', 'position', 'arm', 'ign', 'poke'],
+      controls: ['arm', 'ign', 'poke'],
     ),
     const Device(
       id: 'demo-vesta',
@@ -30,8 +30,8 @@ abstract final class MockCatalog {
       online: false,
       gsmLevel: 1,
       isShared: true,
-      functions: ['arm', 'disarm'],
-      controls: ['arm', 'disarm'],
+      functions: ['state', 'arm'],
+      controls: ['arm'],
     ),
   ];
 

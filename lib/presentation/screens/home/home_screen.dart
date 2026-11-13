@@ -78,6 +78,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     final state = home.state;
     final offline = home.showOffline;
+    final ctrl = ref.read(homeControllerProvider.notifier);
+
+    if (home.loading && !home.hasData) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: NightDriveColors.cyan),
+        ),
+      );
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -114,6 +123,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ],
                     ),
                   ),
+                  if (home.loading)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: NightDriveColors.cyan,
+                        ),
+                      ),
+                    ),
                   PopupMenuButton<String>(
                     color: NightDriveColors.graphiteCard,
                     onSelected: (v) {
@@ -142,6 +163,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ],
               ),
+              if (home.error != null && !offline) ...[
+                const SizedBox(height: 12),
+                Text(
+                  home.error!,
+                  style: const TextStyle(color: NightDriveColors.danger),
+                ),
+              ],
               const SizedBox(height: 20),
               if (offline)
                 _OfflineCard(
@@ -196,7 +224,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: home.commandBusy
+                        onPressed: home.commandBusy ||
+                                !ctrl.canSend(
+                                  (state?.armed ?? false)
+                                      ? DeviceCommand.disarm
+                                      : DeviceCommand.arm,
+                                )
                             ? null
                             : () => _onCommand(
                                   (state?.armed ?? false)
@@ -215,7 +248,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           backgroundColor: NightDriveColors.amber,
                           foregroundColor: NightDriveColors.graphite,
                         ),
-                        onPressed: home.commandBusy
+                        onPressed: home.commandBusy ||
+                                !ctrl.canSend(
+                                  (state?.engineRunning ?? false)
+                                      ? DeviceCommand.stop
+                                      : DeviceCommand.start,
+                                )
                             ? null
                             : () => _onCommand(
                                   (state?.engineRunning ?? false)
@@ -231,7 +269,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton(
-                  onPressed: home.commandBusy
+                  onPressed: home.commandBusy ||
+                          !ctrl.canSend(DeviceCommand.horn)
                       ? null
                       : () => _onCommand(DeviceCommand.horn),
                   child: const Text(S.horn),

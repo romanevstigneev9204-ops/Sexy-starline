@@ -14,6 +14,7 @@ class AuthState {
     this.error,
     this.needsCaptcha = false,
     this.needsSms = false,
+    this.captchaSid,
     this.busy = false,
   });
 
@@ -22,6 +23,7 @@ class AuthState {
   final String? error;
   final bool needsCaptcha;
   final bool needsSms;
+  final String? captchaSid;
   final bool busy;
 
   AuthState copyWith({
@@ -31,6 +33,7 @@ class AuthState {
     bool clearError = false,
     bool? needsCaptcha,
     bool? needsSms,
+    String? captchaSid,
     bool? busy,
   }) {
     return AuthState(
@@ -39,6 +42,7 @@ class AuthState {
       error: clearError ? null : (error ?? this.error),
       needsCaptcha: needsCaptcha ?? this.needsCaptcha,
       needsSms: needsSms ?? this.needsSms,
+      captchaSid: captchaSid ?? this.captchaSid,
       busy: busy ?? this.busy,
     );
   }
@@ -77,6 +81,7 @@ class AuthController extends StateNotifier<AuthState> {
           status: AuthStatus.needsExtra,
           needsCaptcha: result.needsCaptcha,
           needsSms: result.needsSms,
+          captchaSid: result.captchaSid,
         );
       }
       return result;
@@ -111,12 +116,21 @@ class AuthController extends StateNotifier<AuthState> {
         login: login,
         password: password,
         captchaOrSms: code,
+        captchaSid: state.captchaSid,
       );
       if (result.isOk && result.session != null) {
         await _repo.persistSession(result.session!);
         state = AuthState(
           status: AuthStatus.authenticated,
           session: result.session,
+        );
+      } else if (result.needsExtra) {
+        state = state.copyWith(
+          busy: false,
+          needsCaptcha: result.needsCaptcha,
+          needsSms: result.needsSms,
+          captchaSid: result.captchaSid,
+          error: 'Нужен повторный код',
         );
       } else {
         state = state.copyWith(
@@ -138,6 +152,8 @@ class AuthController extends StateNotifier<AuthState> {
         status: AuthStatus.authenticated,
         session: result.session,
       );
+    } else {
+      state = state.copyWith(busy: false, error: 'Демо недоступно');
     }
   }
 

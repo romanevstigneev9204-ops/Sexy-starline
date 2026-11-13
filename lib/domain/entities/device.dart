@@ -25,8 +25,10 @@ class Device extends Equatable {
   final bool isPrimary;
   final bool isShared;
 
-  bool supports(String command) =>
-      controls.contains(command) || functions.contains(command);
+  bool supports(String command) {
+    final pool = {...controls, ...functions}.map((e) => e.toLowerCase());
+    return pool.contains(command.toLowerCase());
+  }
 
   Device copyWith({
     String? id,

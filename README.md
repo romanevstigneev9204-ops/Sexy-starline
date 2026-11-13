@@ -58,22 +58,35 @@ lib/
 
 ### Auth / API
 
-1. `getCode` → `getToken` → `user/login` (SHA1 пароля) → `auth.slid` → cookie `slnet`
-2. WebAPI ходит с `Cookie: slnet=…` через Dio interceptor
-3. Пользовательские токены — только `flutter_secure_storage`
-4. HTTP **429** → UI «Лимит запросов» + работа с кэшем
-5. Offline авто — first-class статус на Home (не путать с ошибкой сети app)
+Цепочка как в официальных скриптах NPO / pystarline:
+
+1. `GET /apiV3/application/getCode/` → `desc.code` (`secret=md5(appSecret)`)
+2. `GET /apiV3/application/getToken/` → `desc.token` (`secret=md5(appSecret+code)`)
+3. `POST /apiV3/user/login/?token=…` (form: `login`, `pass=sha1`) → `desc.user_token`; captcha/SMS при необходимости
+4. `POST /json/v2/auth.slid` `{slid_token}` → cookie `slnet` + `user_id`
+5. WebAPI: `Cookie: slnet=…` (Dio interceptor)
+6. HTTP **429** → UI «Лимит запросов» + Drift/memory cache; **401** → re-login
+7. Offline авто — first-class статус на Home
+
+Парсеры вынесены в `StarlineMappers` (покрыты unit-тестами).
 
 ### Навигация
 
 `Splash` → `Login` → [`Captcha`] → `Devices` → Shell (`Home` / `Map` / `Events`)  
 Settings / Devices — из overflow Home.
 
-### Команды
+### Команды (`set_param`)
 
-- `arm` / `disarm` / `start` / `stop` / `horn`
+Тело как в Home Assistant / pystarline: `{"type": "<name>", "<name>": 0|1}`
+
+| UI | param |
+|----|--------|
+| Поставить / снять охрану | `arm` 1/0 |
+| Запуск / стоп | `ign` 1/0 |
+| Сигнал | `poke` 1 |
+
 - Disarm — явный confirm; Start — hold ≥1.2 с
-- Гейт по `controls` / `functions` устройства
+- `CommandGate` / `CommandPipeline` гейтят по `controls`/`functions`
 
 ## Экраны MVP
 

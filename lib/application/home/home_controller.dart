@@ -5,6 +5,7 @@ import '../../data/repositories/starline_repository.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/entities/device_state.dart';
+import '../commands/command_pipeline.dart';
 
 class HomeState {
   const HomeState({
@@ -27,6 +28,8 @@ class HomeState {
 
   bool get showOffline =>
       forceOfflinePreview || (state != null && !state!.online);
+
+  bool get hasData => device != null && state != null;
 
   HomeState copyWith({
     Device? device,
@@ -51,28 +54,30 @@ class HomeState {
 }
 
 class HomeController extends StateNotifier<HomeState> {
-  HomeController(this._repo) : super(const HomeState());
+  HomeController(this._repo) : super(const HomeState()) {
+    _pipeline = CommandPipeline(_repo);
+  }
 
   final StarlineRepository _repo;
+  late final CommandPipeline _pipeline;
 
   Future<void> bootstrap() async {
     state = state.copyWith(loading: true, clearError: true);
     try {
       final devices = await _repo.devices();
-      final primaryId = await _repo.primaryDeviceId();
-      Device? device;
       if (devices.isEmpty) {
         state = state.copyWith(loading: false, error: 'Нет устройств');
         return;
       }
-      device = devices.cast<Device?>().firstWhere(
-            (d) => d?.id == primaryId,
-            orElse: () => devices.firstWhere(
-              (d) => d.isPrimary,
-              orElse: () => devices.first,
-            ),
-          );
-      final ds = await _repo.refreshState(device!.id);
+      final primaryId = await _repo.primaryDeviceId();
+      final device = devices.firstWhere(
+        (d) => d.id == primaryId,
+        orElse: () => devices.firstWhere(
+          (d) => d.isPrimary,
+          orElse: () => devices.first,
+        ),
+      );
+      final ds = await _repo.refreshState(device.id);
       state = state.copyWith(
         device: device,
         state: ds,
@@ -99,7 +104,10 @@ class HomeController extends StateNotifier<HomeState> {
 
   Future<void> refresh({bool force = false}) async {
     final device = state.device;
-    if (device == null) return;
+    if (device == null) {
+      await bootstrap();
+      return;
+    }
     state = state.copyWith(loading: true, clearError: true);
     try {
       final ds = await _repo.refreshState(device.id, force: force);
@@ -118,33 +126,25 @@ class HomeController extends StateNotifier<HomeState> {
     }
   }
 
+  bool canSend(DeviceCommand command) {
+    final device = state.device;
+    if (device == null) return false;
+    return _pipeline.gate(device, command).ok;
+  }
+
   Future<bool> sendCommand(DeviceCommand command) async {
     final device = state.device;
     if (device == null) return false;
-    if (!device.supports(command.apiKey) && !device.isShared) {
-      // Shared may be limited; still gate by controls when present.
-    }
-    if (device.controls.isNotEmpty && !device.supports(command.apiKey)) {
-      state = state.copyWith(error: 'Команда недоступна на этом устройстве');
-      return false;
-    }
+
     state = state.copyWith(commandBusy: true, clearError: true);
-    try {
-      await _repo.sendCommand(device.id, command);
-      state = state.copyWith(
-        state: _repo.cachedState,
-        commandBusy: false,
-        rateLimited: _repo.rateLimited,
-      );
-      return true;
-    } on StarlineApiException catch (e) {
-      state = state.copyWith(
-        commandBusy: false,
-        error: e.message,
-        rateLimited: e.isRateLimited,
-      );
-      return false;
-    }
+    final result = await _pipeline.execute(device: device, command: command);
+    state = state.copyWith(
+      state: result.state ?? state.state,
+      commandBusy: false,
+      error: result.error,
+      rateLimited: result.rateLimited || _repo.rateLimited,
+    );
+    return result.ok;
   }
 
   void acknowledgeRateLimit() {

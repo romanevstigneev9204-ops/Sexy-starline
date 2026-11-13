@@ -6,6 +6,7 @@ import '../../../application/providers.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/colors.dart';
 import '../../../domain/entities/event.dart';
+import '../../widgets/rate_limit_view.dart';
 
 class EventsScreen extends ConsumerStatefulWidget {
   const EventsScreen({super.key});
@@ -15,18 +16,41 @@ class EventsScreen extends ConsumerStatefulWidget {
 }
 
 class _EventsScreenState extends ConsumerState<EventsScreen> {
-  EventKind? _filter;
+  String? _loadedFor;
 
   @override
   Widget build(BuildContext context) {
     final home = ref.watch(homeControllerProvider);
+    final eventsState = ref.watch(eventsControllerProvider);
     final deviceId = home.device?.id;
+
     if (deviceId == null) {
+      if (!home.loading) {
+        Future.microtask(
+          () => ref.read(homeControllerProvider.notifier).bootstrap(),
+        );
+      }
       return const Scaffold(
-        body: Center(child: Text('Нет выбранного устройства')),
+        body: Center(
+          child: CircularProgressIndicator(color: NightDriveColors.cyan),
+        ),
       );
     }
-    final async = ref.watch(eventsProvider(deviceId));
+
+    if (_loadedFor != deviceId) {
+      _loadedFor = deviceId;
+      Future.microtask(
+        () => ref.read(eventsControllerProvider.notifier).load(deviceId),
+      );
+    }
+
+    if (eventsState.rateLimited) {
+      return RateLimitView(
+        onAck: () =>
+            ref.read(eventsControllerProvider.notifier).acknowledgeRateLimit(),
+      );
+    }
+
     final dateLabel =
         '${S.today} · ${DateFormat('d MMMM', 'ru').format(DateTime.now())}';
 
@@ -49,20 +73,26 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                 children: [
                   _FilterChip(
                     label: S.filterAll,
-                    selected: _filter == null,
-                    onTap: () => setState(() => _filter = null),
+                    selected: eventsState.filter == null,
+                    onTap: () => ref
+                        .read(eventsControllerProvider.notifier)
+                        .setFilter(null),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
                     label: S.filterAlarms,
-                    selected: _filter == EventKind.alarm,
-                    onTap: () => setState(() => _filter = EventKind.alarm),
+                    selected: eventsState.filter == EventKind.alarm,
+                    onTap: () => ref
+                        .read(eventsControllerProvider.notifier)
+                        .setFilter(EventKind.alarm),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
                     label: S.filterCommands,
-                    selected: _filter == EventKind.command,
-                    onTap: () => setState(() => _filter = EventKind.command),
+                    selected: eventsState.filter == EventKind.command,
+                    onTap: () => ref
+                        .read(eventsControllerProvider.notifier)
+                        .setFilter(EventKind.command),
                   ),
                 ],
               ),
@@ -79,65 +109,76 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Expanded(
-              child: async.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: NightDriveColors.cyan),
+            if (eventsState.error != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  eventsState.error!,
+                  style: const TextStyle(color: NightDriveColors.danger),
                 ),
-                error: (e, _) => Center(child: Text('$e')),
-                data: (events) {
-                  final filtered = _filter == null
-                      ? events
-                      : events.where((e) => e.kind == _filter).toList();
-                  return ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, i) {
-                      final e = filtered[i];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: _colorFor(e.kind),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    e.title,
-                                    style: const TextStyle(
-                                      color: NightDriveColors.textPrimary,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${S.today}, ${DateFormat('HH:mm').format(e.timestamp)}',
-                                    style: const TextStyle(
-                                      color: NightDriveColors.textMuted,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
               ),
+            Expanded(
+              child: eventsState.loading && eventsState.events.isEmpty
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: NightDriveColors.cyan,
+                      ),
+                    )
+                  : RefreshIndicator(
+                      color: NightDriveColors.cyan,
+                      onRefresh: () => ref
+                          .read(eventsControllerProvider.notifier)
+                          .load(deviceId, force: true),
+                      child: ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                        itemCount: eventsState.visible.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, i) {
+                          final e = eventsState.visible[i];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: _colorFor(e.kind, e.title),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        e.title,
+                                        style: const TextStyle(
+                                          color: NightDriveColors.textPrimary,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${S.today}, ${DateFormat('HH:mm').format(e.timestamp)}',
+                                        style: const TextStyle(
+                                          color: NightDriveColors.textMuted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -145,12 +186,20 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
     );
   }
 
-  Color _colorFor(EventKind kind) => switch (kind) {
-        EventKind.alarm => NightDriveColors.danger,
-        EventKind.command => NightDriveColors.amber,
-        EventKind.status => NightDriveColors.cyan,
-        EventKind.other => NightDriveColors.textMuted,
-      };
+  Color _colorFor(EventKind kind, String title) {
+    final t = title.toLowerCase();
+    if (kind == EventKind.alarm) return NightDriveColors.danger;
+    if (t.contains('двигател') || t.contains('запущ')) {
+      return NightDriveColors.amber;
+    }
+    if (t.contains('снято') || kind == EventKind.other) {
+      return NightDriveColors.textMuted;
+    }
+    if (kind == EventKind.status || t.contains('охран')) {
+      return NightDriveColors.cyan;
+    }
+    return NightDriveColors.amber;
+  }
 }
 
 class _FilterChip extends StatelessWidget {
