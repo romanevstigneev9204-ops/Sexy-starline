@@ -22,6 +22,11 @@ class ApiBudget extends Equatable {
 
   String get labelRu => '~$requestCount / $dailyLimit запросов сегодня';
 
+  /// Fill [S.apiBudgetLabel] (or any `{count}` / `{limit}` template).
+  String formatLabel(String template) => template
+      .replaceAll('{count}', '$requestCount')
+      .replaceAll('{limit}', '$dailyLimit');
+
   ApiBudget copyWith({int? requestCount}) => ApiBudget(
         day: day,
         requestCount: requestCount ?? this.requestCount,

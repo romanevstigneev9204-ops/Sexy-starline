@@ -36,11 +36,17 @@ void main() {
     expect(find.textContaining(S.themeSystem), findsOneWidget);
   });
 
-  test('theme preference labels stay in Russian', () {
+  test('theme preference labels follow bound S catalog', () {
+    S.bind(AppLanguage.ru);
     expect(AppThemeChoice.nightDrive.settingsLabelRu, S.themeNightDrive);
     expect(
       AppThemeChoice.system.settingsLabelRu,
       contains(S.themeSystem),
     );
+
+    S.bind(AppLanguage.en);
+    expect(AppThemeChoice.nightDrive.settingsLabelRu, 'Night Drive');
+    expect(AppThemeChoice.system.settingsLabelRu, contains('System'));
+    S.bind(AppLanguage.ru);
   });
 }

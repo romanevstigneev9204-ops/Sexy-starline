@@ -326,7 +326,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           : () => ref
                               .read(homeControllerProvider.notifier)
                               .refresh(force: true),
-                      child: const Text(S.refreshPosition),
+                      child: Text(S.refreshPosition),
                     ),
                     if (canTracks && deviceId != null) ...[
                       const SizedBox(height: 16),
@@ -518,7 +518,7 @@ class _TracksPanel extends StatelessWidget {
           }),
         OutlinedButton(
           onPressed: onRefresh,
-          child: const Text(S.tracksRefresh),
+          child: Text(S.tracksRefresh),
         ),
       ],
     );

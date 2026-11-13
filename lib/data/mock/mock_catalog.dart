@@ -114,43 +114,63 @@ abstract final class MockCatalog {
   }
 
   static List<VehicleEvent> eventsFor(String deviceId) {
-    final today = DateTime.now();
-    DateTime at(int h, int m) =>
-        DateTime(today.year, today.month, today.day, h, m);
+    final now = DateTime.now();
+    DateTime ago(int minutes) => now.subtract(Duration(minutes: minutes));
     return [
       VehicleEvent(
         id: 'e1',
         deviceId: deviceId,
         title: 'Тревога: удар',
-        timestamp: at(8, 14),
+        timestamp: ago(42),
         kind: EventKind.alarm,
       ),
       VehicleEvent(
         id: 'e2',
         deviceId: deviceId,
-        title: 'Поставлено на охрану',
-        timestamp: at(7, 52),
-        kind: EventKind.command,
+        title: 'Вход в геозону «Дом»',
+        timestamp: ago(55),
+        kind: EventKind.status,
       ),
       VehicleEvent(
         id: 'e3',
         deviceId: deviceId,
-        title: 'Двигатель запущен',
-        timestamp: at(7, 40),
+        title: 'Поставлено на охрану',
+        timestamp: ago(70),
         kind: EventKind.command,
       ),
       VehicleEvent(
         id: 'e4',
         deviceId: deviceId,
-        title: 'Снято с охраны',
-        timestamp: at(7, 38),
+        title: 'Двигатель заглушен',
+        timestamp: ago(72),
         kind: EventKind.command,
       ),
       VehicleEvent(
         id: 'e5',
         deviceId: deviceId,
+        title: 'Двигатель запущен',
+        timestamp: ago(95),
+        kind: EventKind.command,
+      ),
+      VehicleEvent(
+        id: 'e6',
+        deviceId: deviceId,
+        title: 'Снято с охраны',
+        timestamp: ago(98),
+        kind: EventKind.command,
+      ),
+      VehicleEvent(
+        id: 'e7',
+        deviceId: deviceId,
+        title: 'Выход из геозоны «Офис»',
+        timestamp: ago(210),
+        kind: EventKind.status,
+      ),
+      VehicleEvent(
+        id: 'e8',
+        deviceId: deviceId,
         title: 'Online',
-        timestamp: at(7, 30),
+        timestamp: ago(220),
         kind: EventKind.status,
       ),
     ];

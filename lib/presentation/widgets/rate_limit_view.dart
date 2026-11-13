@@ -67,7 +67,7 @@ class RateLimitView extends StatelessWidget {
                           const Size.fromHeight(NdLayout.buttonHeight),
                     ),
                     onPressed: onAck,
-                    child: const Text(S.rateLimitCta),
+                    child: Text(S.rateLimitCta),
                   ),
                 ),
               ],

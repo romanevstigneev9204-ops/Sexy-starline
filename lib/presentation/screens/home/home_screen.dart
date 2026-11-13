@@ -213,7 +213,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             .previewOffline(!home.forceOfflinePreview);
                       }
                     },
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: 'devices',
                         child: Text(S.menuDevices),
@@ -222,7 +222,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         value: 'settings',
                         child: Text(S.menuSettings),
                       ),
-                      PopupMenuItem(
+                      const PopupMenuItem(
                         value: 'offline',
                         child: Text('Превью офлайн'),
                       ),
@@ -362,7 +362,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           !ctrl.canSend(DeviceCommand.horn)
                       ? null
                       : () => _onCommand(DeviceCommand.horn),
-                  child: const Text(S.horn),
+                  child: Text(S.horn),
                 ),
                 if (home.device?.supportsObd == true) ...[
                   const SizedBox(height: NdLayout.gapLg),
@@ -429,7 +429,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               onPressed: home.commandBusy
                                   ? null
                                   : () => _onCommand(DeviceCommand.panic),
-                              child: const Text(S.panic),
+                              child: Text(S.panic),
                             ),
                           ),
                         ],
@@ -447,7 +447,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       onPressed: home.commandBusy
                           ? null
                           : () => _onCommand(DeviceCommand.panic),
-                      child: const Text(S.panic),
+                      child: Text(S.panic),
                     ),
                   if (ctrl.canSend(DeviceCommand.valetOn) ||
                       ctrl.canSend(DeviceCommand.valetOff)) ...[
@@ -776,7 +776,7 @@ class _OfflineCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: NdLayout.gapLg),
-        FilledButton(onPressed: onCheck, child: const Text(S.checkLink)),
+        FilledButton(onPressed: onCheck, child: Text(S.checkLink)),
         const SizedBox(height: 10),
         Text(
           S.checkSim,

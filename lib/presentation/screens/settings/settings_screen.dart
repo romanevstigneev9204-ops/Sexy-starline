@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../application/home/home_controller.dart';
+import '../../../application/locale/locale_preference.dart';
 import '../../../application/obd/obd_controller.dart';
 import '../../../application/providers.dart';
 import '../../../application/theme/theme_preference.dart';
@@ -53,6 +54,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final obd = ref.watch(obdControllerProvider);
     final demo = ref.watch(envDemoProvider);
     final themeChoice = ref.watch(themePreferenceProvider);
+    final language = ref.watch(localePreferenceProvider);
     final device = home.device;
     final deviceId = device?.id;
     final supportsObd = device?.supportsObd ?? false;
@@ -96,16 +98,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
             ),
             const SizedBox(height: 10),
+            _SettingsTile(
+              title: S.language,
+              subtitle: language.settingsLabel,
+              onTap: () async {
+                final picked = await showLanguageSheet(
+                  context,
+                  current: language,
+                );
+                if (picked != null && context.mounted) {
+                  S.bind(picked);
+                  ref.read(localePreferenceProvider.notifier).state = picked;
+                }
+              },
+            ),
+            const SizedBox(height: 10),
             budget.when(
               data: (b) => _SettingsTile(
                 title: S.apiLimit,
-                subtitle: b.labelRu,
+                subtitle: b.formatLabel(S.apiBudgetLabel),
               ),
-              loading: () => const _SettingsTile(
+              loading: () => _SettingsTile(
                 title: S.apiLimit,
                 subtitle: '…',
               ),
-              error: (_, __) => const _SettingsTile(
+              error: (_, __) => _SettingsTile(
                 title: S.apiLimit,
                 subtitle: '—',
               ),
@@ -157,14 +174,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: () => context.push('/devices'),
             ),
             const SizedBox(height: 10),
-            const _SettingsTile(title: S.about, subtitle: S.aboutValue),
+            _SettingsTile(title: S.about, subtitle: S.aboutValue),
             const SizedBox(height: 24),
             OutlinedButton(
               onPressed: () async {
                 await ref.read(authControllerProvider.notifier).logout();
                 if (context.mounted) context.go('/login');
               },
-              child: const Text(S.logout),
+              child: Text(S.logout),
             ),
           ],
         ),

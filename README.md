@@ -20,14 +20,16 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
-На экране логина нажмите **«Продолжить в демо»** или войдите любым логином — без `STARLINE_APP_*` клиент использует mock.
-
-Демо captcha / SMS (Night Drive UI):
+Без `STARLINE_APP_*` приложение сразу в **демо-режиме** (mock, сессия в памяти — без keyring).  
+На логине основной CTA — **«Продолжить в демо»** → устройства → Home.  
+Опционально: «Войти через StarLine ID» или демо captcha/SMS:
 
 | Логин | Пароль | Код |
 |-------|--------|-----|
 | `captcha` | любой | `1234` или `star` |
 | `sms` | любой | `1234` |
+
+Язык UI по умолчанию **русский**; English — переключатель в **Настройки → Язык**.
 
 ## Реальный StarLine Open API
 
@@ -66,11 +68,11 @@ flutter run \
   --dart-define=MAP_TILE_NIGHT_FILTER=false
 ```
 
-### Web / Linux
+### Web / Linux (опционально)
 
-В репозитории есть `web/` и `linux/`. Android `applicationId` / iOS bundle id **не** менялись (`ru.sexystarline.app`).
+Основной target — **iOS / Android**. В репозитории также есть `web/` и `linux/` для локальной отладки.
 
-**Web + Drift:** в `web/` лежат `sqlite3.wasm` и `drift_worker.js` (нужны Drift WASM). Без них Chrome падает с ошибкой про параметр `web`.
+**Web + Drift:** в `web/` лежат `sqlite3.wasm` и `drift_worker.js` (нужны Drift WASM).
 
 ```bash
 flutter run -d chrome
@@ -78,7 +80,8 @@ flutter run -d chrome
 flutter run -d linux
 ```
 
-Linux: нужны GTK / libsecret (keyring) для `flutter_secure_storage`. Web — демо/отладка; mobile — основной target.
+Демо без AppId не требует системный keyring (сессия in-memory).  
+Для **реального** логина на Linux desktop могут понадобиться GTK-пакеты окружения — это не часть обычного mobile demo-пути.
 
 ## Архитектура
 
@@ -92,7 +95,7 @@ lib/
     local/        # SecureSessionStore, Drift AppDatabase
     repositories/ # кэш + budget + rate-limit
     mock/         # демо-каталог
-  core/           # theme Night Drive, router, Env, RU strings
+  core/           # theme Night Drive, router, Env, RU/EN strings (+ lib/l10n/*.arb)
 ```
 
 ### Auth / API

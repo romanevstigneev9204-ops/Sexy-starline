@@ -26,7 +26,8 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 });
 
 final secureStoreProvider = Provider<SecureSessionStore>((ref) {
-  return SecureSessionStore();
+  // Demo / no credentials: in-memory only — no Linux keyring prompts.
+  return SecureSessionStore(memoryOnly: ref.watch(envDemoProvider));
 });
 
 final apiClientProvider = Provider<StarlineApiClient>((ref) {
